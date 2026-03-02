@@ -3,193 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Classement Flotte - VTC Management</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <title>Classement des Chauffeurs - VTC Ops</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --bg: #f8fafc; 
-            --header: #0f172a; 
-            --accent: #2563eb; 
-            --card: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --success: #10b981;
-            --danger: #ef4444;
+            --bg: #0f172a; --card: #1e293b; --accent: #3b82f6; 
+            --text: #f8fafc; --muted: #94a3b8; --border: #334155;
+            --gold: #f59e0b; --silver: #94a3b8; --bronze: #b45309;
         }
 
-        body { 
-            background: var(--bg); 
-            color: var(--text-main); 
-            font-family: 'Inter', sans-serif; 
-            margin: 0; 
-            padding: 0;
-        }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 40px; }
+        .container { max-width: 1100px; margin: 0 auto; }
 
-        /* Top Navigation Header */
-        .top-nav {
-            background: var(--header);
-            color: white;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        h1 { font-size: 1.8rem; letter-spacing: -1px; }
 
-        .top-nav h1 { font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; margin: 0; }
-        .back-btn { color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: 600; transition: 0.2s; }
-        .back-btn:hover { color: white; }
+        .btn-back { background: transparent; border: 1px solid var(--border); color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; text-decoration: none; font-size: 0.85rem; font-weight: 600; transition: 0.2s; }
+        .btn-back:hover { background: var(--border); }
 
-        .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
-
-        /* Table Card */
-        .card { 
-            background: var(--card); 
-            border-radius: 12px; 
-            border: 1px solid var(--border); 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            overflow: hidden;
-            margin-bottom: 40px;
-        }
-
-        .card-header { padding: 20px 25px; border-bottom: 1px solid var(--border); background: #fcfdfe; }
-        .card-title { font-weight: 700; color: var(--text-main); font-size: 1.1rem; }
-
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th { 
-            background: #f8fafc; 
-            padding: 15px 25px; 
-            font-size: 0.75rem; 
-            font-weight: 700; 
-            text-transform: uppercase; 
-            color: var(--text-muted); 
-            letter-spacing: 1px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        td { padding: 18px 25px; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+        table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); }
+        th { background: #16213e; padding: 18px; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: var(--accent); letter-spacing: 1.5px; font-weight: 700; }
+        td { padding: 18px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
         tr:last-child td { border-bottom: none; }
-        tr:hover { background: #f1f5f9; }
+        tr:hover { background: #262f45; transition: 0.2s; }
 
-        .rank-cell { font-family: 'JetBrains Mono'; font-weight: 700; color: var(--text-muted); width: 60px; }
-        .driver-name { font-weight: 600; color: var(--accent); text-decoration: none; }
-        .driver-name:hover { text-decoration: underline; }
-        
-        .badge-rank { 
-            font-size: 0.7rem; 
-            padding: 3px 8px; 
-            border-radius: 4px; 
-            background: #e2e8f0; 
-            color: #475569; 
-            margin-left: 10px;
-            font-weight: 700;
-        }
+        /* Styles spécifiques aux colonnes */
+        .pos-1 { color: var(--gold); font-weight: 800; }
+        .pos-2 { color: var(--silver); font-weight: 800; }
+        .pos-3 { color: var(--bronze); font-weight: 800; }
 
-        .mono { font-family: 'JetBrains Mono'; font-weight: 500; }
-        .positive { color: var(--success); font-weight: 600; }
-        .negative { color: var(--danger); font-size: 0.85rem; }
-
-        /* Footer Info */
-        .footer-info { text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-top: -20px; }
+        .rank-tag { padding: 4px 10px; border-radius: 5px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: white; display: inline-block; }
+        .xp-val { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent); }
+        .money-val { color: #10b981; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+        .job-val { font-style: italic; color: var(--muted); font-size: 0.8rem; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     </style>
 </head>
 <body>
 
-    <header class="top-nav">
-        <h1>VTC Management System</h1>
-        <a href="index.html" class="back-btn">← RETOUR DASHBOARD</a>
-    </header>
-
     <div class="container">
+        <header>
+            <h1>🏆 CLASSEMENT GÉNÉRAL</h1>
+            <a href="index.html" class="btn-back">⬅ RETOUR DASHBOARD</a>
+        </header>
+
         
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">Classement des Chauffeurs Actifs</div>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Rang</th>
-                        <th>Chauffeur</th>
-                        <th>Distance Totale</th>
-                        <th>Capital</th>
-                        <th>Dépenses (Carbu/Dégâts)</th>
-                    </tr>
-                </thead>
-                <tbody id="leader-body">
-                    </tbody>
-            </table>
-        </div>
 
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">Flux Logistique (Dernières Livraisons)</div>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Opérateur</th>
-                        <th>Destination</th>
-                        <th>Cargaison</th>
-                        <th>Prime</th>
-                    </tr>
-                </thead>
-                <tbody id="history-body">
-                    </tbody>
-            </table>
-        </div>
-
-        <p class="footer-info">Données synchronisées en temps réel via Cloud MongoDB</p>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 50px;">Pos</th>
+                    <th>Chauffeur</th>
+                    <th>Rang</th>
+                    <th>Expérience</th>
+                    <th>Dernière Mission</th>
+                    <th>Solde Compte</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+                </tbody>
+        </table>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
 
+        // Système de calcul des rangs (Identique au Dashboard pour la cohérence)
+        function getRankInfo(xp) {
+            if (xp < 500) return { name: "Stagiaire", color: "#64748b" };
+            if (xp < 2000) return { name: "Chauffeur Pro", color: "#2563eb" };
+            if (xp < 5000) return { name: "Expert Route", color: "#10b981" };
+            return { name: "Légende VTC", color: "#f59e0b" };
+        }
+
         socket.on('update_leaderboard', (drivers) => {
-            const body = document.getElementById('leader-body');
+            const body = document.getElementById('leaderboard-body');
             body.innerHTML = "";
 
-            drivers.sort((a, b) => b.distance - a.distance);
+            // Tri par XP décroissante (Le plus haut en premier)
+            drivers.sort((a, b) => (b.experience || 0) - (a.experience || 0));
 
-            drivers.forEach((d, index) => {
-                const km = Math.round(d.distance);
-                let rankLabel = "STAGIAIRE";
-                if(km >= 5000) rankLabel = "LÉGENDE";
-                else if(km >= 2000) rankLabel = "EXPERT";
-                else if(km >= 500) rankLabel = "CONFIRMÉ";
-
-                body.innerHTML += `
+            drivers.forEach((driver, index) => {
+                const rank = getRankInfo(driver.experience || 0);
+                const posClass = index === 0 ? "pos-1" : (index === 1 ? "pos-2" : (index === 2 ? "pos-3" : ""));
+                
+                const row = `
                     <tr>
-                        <td class="rank-cell">#${index + 1}</td>
-                        <td>
-                            <a href="profile.html?user=${d.name}" class="driver-name">${d.name.toUpperCase()}</a>
-                            <span class="badge-rank">${rankLabel}</span>
-                        </td>
-                        <td class="mono">${km.toLocaleString()} KM</td>
-                        <td class="positive mono">${Math.floor(d.wallet).toLocaleString()} €</td>
-                        <td>
-                            <span class="negative mono">⛽ -${Math.floor(d.totalFuelSpends || 0)}€</span><br>
-                            <span class="negative mono">🔧 -${Math.floor(d.totalRepairSpends || 0)}€</span>
-                        </td>
+                        <td class="${posClass}">${index + 1}</td>
+                        <td style="font-weight: 700; letter-spacing: 0.5px;">${driver.name.toUpperCase()}</td>
+                        <td><span class="rank-tag" style="background:${rank.color}">${rank.name}</span></td>
+                        <td class="xp-val">${Math.round(driver.experience || 0)} XP</td>
+                        <td class="job-val">${driver.lastJob || "En attente..."}</td>
+                        <td class="money-val">${driver.wallet.toLocaleString()} €</td>
                     </tr>
                 `;
-            });
-        });
-
-        socket.on('update_history', (deliveries) => {
-            const hBody = document.getElementById('history-body');
-            hBody.innerHTML = "";
-            deliveries.forEach(del => {
-                hBody.innerHTML += `
-                    <tr>
-                        <td style="font-weight:600;">${del.driverName.toUpperCase()}</td>
-                        <td style="color:var(--accent); font-weight:500;">📍 ${del.destination}</td>
-                        <td style="color:var(--text-muted); font-style:italic;">${del.cargo}</td>
-                        <td class="positive mono">+ ${del.reward} €</td>
-                    </tr>
-                `;
+                body.innerHTML += row;
             });
         });
     </script>

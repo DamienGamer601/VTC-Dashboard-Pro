@@ -2,62 +2,69 @@ const io = require('socket.io-client');
 const axios = require('axios');
 
 // --- CONFIGURATION ---
-const SERVER_URL = "https://vtc-dashboard-pro.onrender.com"; // Remplace par ton URL Render
-const TELEMETRY_URL = "http://localhost:25555/api/ets2/telemetry"; // URL par défaut du plugin SCS SDK
-const UPDATE_INTERVAL = 1000; // Envoi des données toutes les 1 seconde
+// Remplace par l'URL de ton site Render (ex: https://mon-vtc.onrender.com)
+const SERVER_URL = "https://vtc-dashboard-pro.onrender.com"; 
 
-// Récupération du nom du chauffeur configuré dans le dashboard
-// Note: Si tu lances ce script manuellement, remplace 'Damian' par ton pseudo
-const DRIVER_NAME = "Damian"; 
+// URL locale du plugin telemetry (ne pas changer sauf si port différent)
+const TELEMETRY_URL = "http://localhost:25555/api/ets2/telemetry";
 
 const socket = io(SERVER_URL);
 
-console.log("🚛 Relais VTC Pro - Démarrage...");
+// Récupération du nom du chauffeur configuré sur ton ordi
+const DRIVER_NAME = process.env.DRIVER_NAME || "Chauffeur_Anonyme";
+
+console.log(`🚛 Relais VTC démarré pour : ${DRIVER_NAME}`);
+console.log(`🔗 Connexion au serveur : ${SERVER_URL}`);
 
 socket.on('connect', () => {
-    console.log("✅ Connecté au serveur VTC Cloud !");
+    console.log("✅ Connecté au serveur Render !");
 });
 
 socket.on('disconnect', () => {
     console.log("❌ Déconnecté du serveur.");
 });
 
-// Boucle de récupération des données
+// Écoute des ordres de réparation à distance de l'admin
+socket.on('remote_repair', (data) => {
+    if (data.targetDriver.toLowerCase() === DRIVER_NAME.toLowerCase()) {
+        console.log("🛠️ ORDRE ADMIN : Réparation du camion en cours...");
+        // Ici, on pourrait ajouter une logique pour réinitialiser les dégâts 
+        // si le plugin telemetry le permettait en écriture.
+    }
+});
+
+// Boucle de lecture des données (toutes les 500ms pour ne pas ramer)
 setInterval(async () => {
     try {
         const response = await axios.get(TELEMETRY_URL);
-        const telemetry = response.data;
+        const data = response.data;
 
-        // On ne transmet les données que si le camion est détecté
-        if (telemetry.truck && telemetry.truck.brand) {
-            
-            // On structure les données pour le serveur
-            const payload = {
-                driverName: DRIVER_NAME,
-                truck: {
-                    speed: Math.round(telemetry.truck.speed),
-                    displayedGear: telemetry.truck.displayedGear,
-                    fuel: telemetry.truck.fuel,
-                    fuelCapacity: telemetry.truck.fuelCapacity,
-                    wearSum: (telemetry.truck.wearEngine + telemetry.truck.wearWheels + telemetry.truck.wearTransmission) / 3 * 100, // Moyenne des dégâts
-                    odometer: telemetry.truck.odometer,
-                    parkBrakeOn: telemetry.truck.parkBrakeOn,
-                    cruiseControlOn: telemetry.truck.cruiseControlOn,
-                    cruiseControlSpeed: telemetry.truck.cruiseControlSpeed
-                },
-                job: {
-                    cargoLoaded: telemetry.job.cargoLoaded,
-                    cargo: telemetry.job.cargo,
-                    destinationCity: telemetry.job.destinationCity
-                }
-            };
+        // On prépare l'objet à envoyer avec le nom du chauffeur
+        const payload = {
+            driverName: DRIVER_NAME,
+            truck: {
+                speed: Math.round(data.truck.speed > 0 ? data.truck.speed : 0),
+                odometer: data.truck.odometer,
+                fuel: data.truck.fuel,
+                fuelCapacity: data.truck.fuelCapacity,
+                wearSum: Math.round((data.truck.wearEngine + data.truck.wearWheels + data.truck.wearChassis) / 3 * 100),
+                gear: data.truck.displayedGear
+            },
+            job: {
+                cargoLoaded: data.job.cargoLoaded,
+                cargo: data.job.cargo,
+                destinationCity: data.job.destinationCity
+            }
+        };
 
-            socket.emit('truck_data', payload);
-            process.stdout.write(`\r[ENVOI] Vitesse: ${payload.truck.speed} km/h | Fuel: ${Math.round(payload.truck.fuel)}L   `);
-        } else {
-            process.stdout.write(`\r[ATTENTE] ETS2 détecté, mais aucun camion en route...   `);
-        }
+        // Envoi au serveur
+        socket.emit('truck_data', payload);
+
     } catch (error) {
-        process.stdout.write(`\r[ERREUR] Impossible de joindre le plugin Telemetry (Vérifiez si le jeu est lancé)   `);
+        if (error.code === 'ECONNREFUSED') {
+            console.log("⏳ En attente de SCS Telemetry (lance le jeu !)");
+        } else {
+            console.error("⚠️ Erreur relais :", error.message);
+        }
     }
-}, UPDATE_INTERVAL);
+}, 500);

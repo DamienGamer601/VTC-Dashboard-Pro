@@ -3,156 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion Flotte - VTC Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Connexion - Fleet Manager VTC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --bg: #f8fafc; 
-            --accent: #2563eb; 
-            --card: #ffffff; 
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
+            --bg: #0f172a; --card: #1e293b; --accent: #3b82f6; 
+            --text: #f8fafc; --muted: #94a3b8; --border: #334155;
         }
 
         body { 
             background: var(--bg); 
+            color: var(--text); 
             font-family: 'Inter', sans-serif; 
+            margin: 0; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            height: 100vh; 
-            margin: 0; 
+            min-height: 100vh;
         }
 
-        .login-card { 
-            background: var(--card); 
-            padding: 40px; 
-            border-radius: 12px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
-            width: 350px; 
-            text-align: center; 
-            border: 1px solid var(--border); 
-            animation: slideUp 0.5s ease-out;
+        .login-card {
+            background: var(--card);
+            padding: 40px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            animation: fadeIn 0.6s ease-out;
         }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(10px); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        h1 { 
-            color: var(--text-main); 
-            font-size: 1.1rem; 
-            margin-bottom: 8px; 
-            font-weight: 700; 
-            text-transform: uppercase; 
-            letter-spacing: 1px; 
-        }
+        h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 10px; letter-spacing: -0.5px; }
+        p { color: var(--muted); font-size: 0.9rem; margin-bottom: 30px; }
 
-        p {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            margin-bottom: 30px;
-        }
-
-        .input-group {
-            text-align: left;
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-        }
-
-        input { 
-            width: 100%; 
-            padding: 12px; 
-            border: 1px solid var(--border); 
-            border-radius: 6px; 
-            box-sizing: border-box; 
-            font-size: 1rem; 
-            background: #fdfdfd;
-            transition: 0.2s;
+        .input-group { text-align: left; margin-bottom: 20px; }
+        label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
+        
+        input {
+            width: 100%;
+            padding: 14px;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            font-family: 'Inter';
+            box-sizing: border-box;
+            transition: border-color 0.2s;
         }
 
         input:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
 
-        button { 
-            width: 100%; 
-            padding: 14px; 
-            background: var(--accent); 
-            color: white; 
-            border: none; 
-            border-radius: 6px; 
-            font-weight: 600; 
-            font-size: 0.95rem;
-            cursor: pointer; 
-            transition: 0.2s; 
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 10px;
         }
 
-        button:hover { 
-            background: #1d4ed8; 
-            transform: translateY(-1px);
-        }
+        .btn-login:hover { background: #2563eb; }
+        .btn-login:active { transform: scale(0.98); }
 
-        .footer { 
-            margin-top: 30px; 
-            font-size: 0.7rem; 
-            color: #94a3b8; 
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+        .footer-note { margin-top: 25px; font-size: 0.75rem; color: var(--muted); }
     </style>
 </head>
 <body>
 
     <div class="login-card">
-        <h1>Accès Terminal</h1>
-        <p>Gestion de flotte VTC Pro</p>
+        <h1>Fleet Manager v4</h1>
+        <p>Connectez-vous pour accéder à votre dashboard.</p>
 
         <div class="input-group">
-            <label>Identifiant Chauffeur</label>
-            <input type="text" id="driver-name" placeholder="Ex: Damian_77" autocomplete="off">
+            <label for="username">Nom du Chauffeur</label>
+            <input type="text" id="username" placeholder="Ex: Damian_VTC" autocomplete="off">
         </div>
 
-        <button onclick="startSession()">Prendre son Service</button>
+        <button class="btn-login" onclick="login()">SE CONNECTER</button>
 
-        <div class="footer">
-            SCS Telemetry Cloud v4.0
+        <div class="footer-note">
+            En vous connectant, vos statistiques de route seront synchronisées en temps réel avec le Dispatch.
         </div>
     </div>
 
     <script>
-        // Redirection auto si déjà connecté
-        if(localStorage.getItem('vtcName')) {
+        // Si déjà connecté, on redirige vers le dashboard
+        if (localStorage.getItem('vtcName')) {
             window.location.href = "index.html";
         }
 
-        function startSession() {
-            const name = document.getElementById('driver-name').value.trim();
+        function login() {
+            const name = document.getElementById('username').value.trim();
             
-            if(name.length < 3) {
-                alert("Identifiant trop court (min 3 caractères).");
+            if (name.length < 3) {
+                alert("Veuillez entrer un nom de chauffeur valide (minimum 3 caractères).");
                 return;
             }
 
+            // Sauvegarde du nom dans le navigateur
             localStorage.setItem('vtcName', name);
+            
+            // Redirection vers le tableau de bord
             window.location.href = "index.html";
         }
 
-        // Entrée clavier
-        document.getElementById('driver-name').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') startSession();
+        // Permet de valider avec la touche "Entrée"
+        document.getElementById('username').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                login();
+            }
         });
     </script>
 </body>
