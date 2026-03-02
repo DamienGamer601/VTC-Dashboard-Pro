@@ -6,22 +6,22 @@
     <title>Recrutement - VTC Ops</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <style>
         :root { 
             --bg: #020617; --card: #0f172a; --accent: #3b82f6; 
             --text: #f8fafc; --muted: #64748b; --border: rgba(51, 65, 85, 0.6);
-            --success: #10b981; --danger: #ef4444;
+            --success: #10b981; --danger: #ef4444; --gold: #f59e0b;
         }
 
         body { 
             background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
             margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh;
             background-image: radial-gradient(circle at top right, #1e293b 0%, #020617 100%);
-            overflow-x: hidden;
+            overflow: hidden;
         }
 
-        /* Scanline Overlay (Cohérence avec le reste de l'App) */
+        /* Scanline Overlay */
         body::before {
             content: " "; display: block; position: fixed; top: 0; left: 0; bottom: 0; right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
@@ -32,127 +32,111 @@
             background: rgba(15, 23, 42, 0.8); padding: 50px; border-radius: 40px; 
             border: 1px solid var(--border); width: 100%; max-width: 460px;
             box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(20px);
-            position: relative; animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            backdrop-filter: blur(20px); position: relative; 
+            animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(40px); filter: blur(10px); }
+            from { opacity: 0; transform: translateY(30px); filter: blur(10px); }
             to { opacity: 1; transform: translateY(0); filter: blur(0); }
         }
 
-        .header-reg { text-align: center; margin-bottom: 45px; }
+        .header-reg { text-align: center; margin-bottom: 40px; }
         .badge {
             display: inline-block; padding: 6px 14px; background: rgba(59, 130, 246, 0.1);
             color: var(--accent); border-radius: 100px; font-size: 0.65rem; font-weight: 900;
             letter-spacing: 3px; text-transform: uppercase; margin-bottom: 20px;
             border: 1px solid rgba(59, 130, 246, 0.2);
         }
-        .header-reg h1 { font-family: 'JetBrains Mono'; font-size: 2rem; letter-spacing: -1.5px; margin: 0; font-weight: 900; }
-        .header-reg p { font-size: 0.9rem; color: var(--muted); margin-top: 12px; font-weight: 500; }
 
-        .form-group { margin-bottom: 25px; text-align: left; }
+        .header-reg h1 { font-family: 'JetBrains Mono'; font-size: 2rem; letter-spacing: -1.5px; margin: 0; font-weight: 900; }
+
+        .form-group { margin-bottom: 20px; }
         label { 
-            display: block; font-size: 0.65rem; font-weight: 900; 
-            text-transform: uppercase; color: var(--muted); margin-bottom: 12px; 
+            display: block; font-size: 0.6rem; font-weight: 900; 
+            text-transform: uppercase; color: var(--muted); margin-bottom: 8px; 
             letter-spacing: 2px; padding-left: 5px;
         }
         
         input, select { 
-            width: 100%; padding: 18px; background: rgba(2, 6, 23, 0.5); border: 1px solid var(--border); 
-            border-radius: 16px; color: white; font-family: 'Inter'; box-sizing: border-box;
-            transition: all 0.3s ease; font-size: 0.95rem; font-weight: 500;
+            width: 100%; padding: 16px; background: rgba(2, 6, 23, 0.5); border: 1px solid var(--border); 
+            border-radius: 14px; color: white; font-family: 'Inter'; box-sizing: border-box;
+            transition: 0.3s; font-size: 0.95rem;
         }
         input:focus, select:focus { 
             outline: none; border-color: var(--accent); 
-            background: rgba(15, 23, 42, 0.9);
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
-        }
-
-        select { 
-            cursor: pointer; appearance: none; 
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%233b82f6' stroke-width='3'%3E%3Cpath d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); 
-            background-repeat: no-repeat; background-position: right 20px center; background-size: 14px;
+            background: rgba(15, 23, 42, 0.9); box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
         }
 
         .btn-submit { 
             width: 100%; padding: 20px; background: var(--accent); color: white; 
             border: none; border-radius: 16px; font-weight: 900; cursor: pointer; 
-            text-transform: uppercase; letter-spacing: 3px; margin-top: 15px;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-size: 0.85rem;
-            box-shadow: 0 15px 30px rgba(59, 130, 246, 0.3);
-            font-family: 'JetBrains Mono';
+            text-transform: uppercase; letter-spacing: 3px; margin-top: 10px;
+            transition: 0.4s; font-family: 'JetBrains Mono';
         }
-        .btn-submit:hover { 
-            background: #2563eb; transform: translateY(-3px); 
-            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.4); 
-        }
-        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-        .footer-links { 
-            margin-top: 35px; font-size: 0.8rem; text-align: center; 
-            border-top: 1px solid rgba(255,255,255,0.05); padding-top: 30px; 
-        }
-        .footer-links a { color: var(--accent); text-decoration: none; font-weight: 800; transition: 0.2s; }
-        .footer-links a:hover { filter: brightness(1.2); text-decoration: underline; }
+        .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(59, 130, 246, 0.3); }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
         #msg-box { 
-            margin-top: 25px; padding: 20px; border-radius: 18px; font-size: 0.85rem; 
-            display: none; font-weight: 600; line-height: 1.6;
-            animation: fadeIn 0.4s ease; text-align: center;
+            margin-top: 20px; padding: 15px; border-radius: 12px; font-size: 0.8rem; 
+            display: none; text-align: center; font-weight: 600;
         }
-        @keyframes fadeIn { from { opacity: 0; scale: 0.95; } to { opacity: 1; scale: 1; } }
-        
         .msg-error { background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.2); }
         .msg-success { background: rgba(16, 185, 129, 0.1); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.2); }
+
+        .footer-links { margin-top: 30px; text-align: center; font-size: 0.75rem; color: var(--muted); }
+        .footer-links a { color: var(--accent); text-decoration: none; font-weight: 800; }
     </style>
 </head>
 <body>
 
     <div class="register-card">
         <div class="header-reg">
-            <div class="badge">Session de Recrutement</div>
-            <h1>INTÉGRATION FLOTTE</h1>
-            <p>Remplissez votre dossier technique pour accéder au réseau logistique.</p>
+            <div class="badge" id="status-badge">Protocole d'Enrôlement</div>
+            <h1>FLOTTE <span style="color:var(--accent)">VTC OPS</span></h1>
         </div>
 
         <div id="register-form">
             <div class="form-group">
-                <label>Indicatif Chauffeur (Pseudo)</label>
-                <input type="text" id="reg-name" placeholder="ex: Ghost_Rider" required autocomplete="off">
+                <label>Indicatif Chauffeur</label>
+                <input type="text" id="reg-name" placeholder="Pseudo" required autocomplete="off">
             </div>
 
             <div class="form-group">
-                <label>Code d'Accès (Mot de passe)</label>
+                <label>Code d'Accès</label>
                 <input type="password" id="reg-pass" placeholder="••••••••" required>
             </div>
 
             <div class="form-group">
-                <label>Division Matériel Assignée</label>
+                <label>Division Matériel</label>
                 <select id="reg-truck">
-                    <option value="Scania">Division SCANIA // S-Series</option>
-                    <option value="Volvo">Division VOLVO // FH-16</option>
-                    <option value="Renault">Division RENAULT // T-High</option>
-                    <option value="DAF">Division DAF // XG-Plus</option>
-                    <option value="MAN">Division MAN // TGX-Elite</option>
+                    <option value="Scania">SCANIA // Division S-Series</option>
+                    <option value="Volvo">VOLVO // Division FH-16</option>
+                    <option value="Renault">RENAULT // Division T-High</option>
+                    <option value="DAF">DAF // Division XG-Plus</option>
                 </select>
             </div>
 
-            <button class="btn-submit" onclick="submitApplication()">Envoyer mon Dossier</button>
+            <button class="btn-submit" onclick="submitApplication()">Envoyer le Dossier</button>
         </div>
 
         <div id="msg-box"></div>
 
         <div class="footer-links">
-            <p style="color: var(--muted); font-weight: 500;">
-                Déjà enregistré dans la base de données ?<br>
-                <a href="login.html" style="margin-top: 8px; display: inline-block;">Retour au Terminal de Connexion</a>
-            </p>
+            Déjà inscrit ? <a href="login.html">Connexion Terminal</a>
         </div>
     </div>
 
     <script>
         const socket = io();
+
+        // SÉCURITÉ : Vérifier si la charte a été acceptée
+        window.onload = () => {
+            if (localStorage.getItem('rulesAccepted') !== 'true') {
+                alert("ACCÈS REFUSÉ : Vous devez accepter la charte conducteur avant l'enrôlement.");
+                window.location.href = 'rules.html';
+            }
+        };
 
         function submitApplication() {
             const name = document.getElementById('reg-name').value;
@@ -161,11 +145,11 @@
             const btn = document.querySelector('.btn-submit');
 
             if(!name || !pass) {
-                showMsg("ALERTE : Tous les paramètres d'identification sont requis.", "error");
+                showMsg("ERREUR : Identifiants incomplets.", "error");
                 return;
             }
 
-            btn.innerText = "TRANSFERT EN COURS...";
+            btn.innerText = "TRANSFERT...";
             btn.disabled = true;
 
             socket.emit('auth_register', { 
@@ -176,10 +160,12 @@
         }
 
         socket.on('register_pending', () => {
-            showMsg("DOSSIER RÉCEPTIONNÉ. Un dispatcher va procéder à la vérification de vos antécédents. Patientez jusqu'à l'activation.", "success");
+            showMsg("DOSSIER RÉCEPTIONNÉ. Un dispatcher va activer votre accès sous peu.", "success");
             document.getElementById('register-form').style.display = "none";
-            document.querySelector('.badge').innerText = "Statut : En Attente";
-            document.querySelector('.badge').style.color = "var(--gold)";
+            document.getElementById('status-badge').innerText = "Statut : En Attente";
+            document.getElementById('status-badge').style.color = "var(--gold)";
+            // On peut supprimer le flag rulesAccepted une fois fini
+            localStorage.removeItem('rulesAccepted');
         });
 
         socket.on('auth_error', (msg) => {

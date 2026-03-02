@@ -3,239 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dossier Chauffeur - VTC Ops</title>
-    <link rel="icon" type="image/png" href="logo.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <title>Mon Profil - VTC Ops</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
         :root { 
             --bg: #020617; --card: #0f172a; --accent: #3b82f6; 
-            --text: #f8fafc; --muted: #64748b; --border: rgba(51, 65, 85, 0.6);
-            --gold: #f59e0b; --success: #10b981; --danger: #ef4444;
+            --text: #f8fafc; --muted: #64748b; --border: rgba(51, 65, 85, 0.5);
         }
 
         body { 
             background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
-            margin: 0; padding: 40px; min-height: 100vh;
-            background-image: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+            margin: 0; padding: 40px; background-image: radial-gradient(circle at 0% 0%, #1e293b 0%, #020617 100%);
         }
 
-        /* Scanline global léger */
-        body::before {
-            content: " "; display: block; position: fixed; top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
-            z-index: 1000; background-size: 100% 4px; pointer-events: none; opacity: 0.2;
+        .profile-grid {
+            display: grid; grid-template-columns: 350px 1fr; gap: 30px; max-width: 1200px; margin: 0 auto;
         }
 
-        .profile-container { max-width: 900px; margin: 0 auto; animation: slideUp 0.6s ease-out; }
-
-        /* HEADER DOSSIER STYLE IDENTITÉ */
-        .profile-header { 
-            background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border); 
-            border-radius: 40px; padding: 50px; display: flex; align-items: center; gap: 40px;
-            position: relative; overflow: hidden; backdrop-filter: blur(20px);
-            box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+        /* --- CARTE IDENTITÉ --- */
+        .id-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 30px;
+            padding: 40px; text-align: center; position: relative; overflow: hidden;
+        }
+        .id-card::before {
+            content: "OPERATOR"; position: absolute; top: 10px; right: -20px;
+            background: var(--accent); color: white; padding: 5px 30px;
+            font-size: 0.6rem; font-weight: 900; transform: rotate(45deg);
         }
 
-        .profile-header::after {
-            content: "CONFIDENTIAL"; position: absolute; top: 20px; right: -30px;
-            font-family: 'JetBrains Mono'; font-size: 5rem; opacity: 0.05;
-            transform: rotate(-15deg); font-weight: 900; pointer-events: none; color: white;
+        .avatar-circle {
+            width: 120px; height: 120px; background: #1e293b; border-radius: 50%;
+            margin: 0 auto 20px; border: 4px solid var(--accent);
+            display: flex; align-items: center; justify-content: center; font-size: 3rem;
         }
 
-        .avatar-container { position: relative; }
-        .avatar-circle { 
-            width: 150px; height: 150px; background: var(--accent); 
-            border-radius: 35px; display: flex; align-items: center; justify-content: center;
-            font-size: 4.5rem; font-weight: 900; border: 4px solid rgba(255,255,255,0.1);
-            transform: rotate(-2deg); box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
-            text-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
+        .driver-name { font-size: 1.8rem; font-weight: 900; margin-bottom: 5px; }
+        .driver-rank { color: var(--accent); font-family: 'JetBrains Mono'; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
 
-        .driver-info h1 { 
-            margin: 0; font-size: 2.8rem; font-family: 'JetBrains Mono'; 
-            letter-spacing: -2px; font-weight: 900; line-height: 1;
-        }
+        /* --- STATS ET PROGRESSION --- */
+        .main-content { display: flex; flex-direction: column; gap: 30px; }
         
-        .rank-group { display: flex; align-items: center; gap: 15px; margin-top: 15px; }
-        .rank-badge { 
-            padding: 8px 18px; background: var(--gold); 
-            color: #000; border-radius: 12px; font-size: 0.7rem; font-weight: 900; 
-            text-transform: uppercase; letter-spacing: 2px; box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3);
-        }
-
-        /* PROGRESS BAR XP */
-        .xp-bar-container { width: 100%; max-width: 350px; margin-top: 25px; }
-        .xp-label { 
-            font-size: 0.6rem; color: var(--muted); text-transform: uppercase; 
-            margin-bottom: 10px; display: flex; justify-content: space-between;
-            font-weight: 800; letter-spacing: 1px;
-        }
-        .xp-bg { height: 10px; background: rgba(0,0,0,0.4); border-radius: 20px; overflow: hidden; border: 1px solid var(--border); }
-        .xp-fill { 
-            height: 100%; background: linear-gradient(90deg, var(--accent), #60a5fa); 
-            width: 0%; transition: width 2s cubic-bezier(0.34, 1.56, 0.64, 1); 
-            box-shadow: 0 0 10px var(--accent);
-        }
-
-        /* STATS GRID */
-        .stats-grid { 
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px; 
-        }
-        .stat-card { 
+        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .stat-box { 
             background: rgba(15, 23, 42, 0.5); border: 1px solid var(--border); 
-            padding: 30px; border-radius: 30px; text-align: left; transition: 0.4s;
-            backdrop-filter: blur(10px);
+            padding: 25px; border-radius: 20px; 
         }
-        .stat-card:hover { transform: translateY(-8px); border-color: var(--accent); background: rgba(30, 41, 59, 0.8); }
-        .stat-icon { font-size: 1.5rem; margin-bottom: 15px; filter: drop-shadow(0 0 10px var(--accent)); }
-        .stat-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; font-weight: 800; letter-spacing: 1.5px; }
-        .stat-value { font-family: 'JetBrains Mono'; font-size: 1.6rem; font-weight: 800; margin-top: 8px; }
+        .stat-val { display: block; font-size: 1.5rem; font-weight: 900; font-family: 'JetBrains Mono'; color: var(--accent); }
+        .stat-lab { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; font-weight: 800; }
 
-        /* VÉHICULE ASSIGNÉ */
-        .inventory-preview { margin-top: 40px; }
-        .section-header { 
-            display: flex; align-items: center; gap: 20px; margin-bottom: 25px;
-            font-family: 'JetBrains Mono'; font-size: 0.75rem; font-weight: 900; color: var(--muted);
-            letter-spacing: 3px;
+        .xp-bar-container {
+            background: #1e293b; height: 12px; border-radius: 10px; margin-top: 15px; overflow: hidden;
         }
-        .section-line { flex-grow: 1; height: 1px; background: var(--border); }
+        .xp-bar-fill { height: 100%; background: var(--accent); width: 45%; box-shadow: 0 0 15px var(--accent); }
 
-        .truck-card { 
-            background: rgba(15, 23, 42, 0.6); padding: 30px; border-radius: 30px; 
-            border: 1px solid var(--border); display: flex; align-items: center; gap: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2); transition: 0.3s;
+        /* --- CAMION ACTUEL --- */
+        .truck-display {
+            background: linear-gradient(45deg, #0f172a, #1e293b);
+            border-radius: 30px; padding: 40px; border: 1px solid var(--border);
+            display: flex; align-items: center; gap: 40px;
         }
-        .truck-card:hover { border-color: var(--success); }
-        .truck-icon-box { 
-            width: 70px; height: 70px; background: rgba(16, 185, 129, 0.1); 
-            border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem;
-            color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2);
+        .truck-info h3 { margin: 0; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; }
+        .truck-model { font-size: 2rem; font-weight: 900; margin-top: 5px; }
+        
+        .btn-action {
+            padding: 15px 30px; border-radius: 12px; border: none; font-weight: 800;
+            cursor: pointer; transition: 0.3s; text-decoration: none; display: inline-block;
         }
-
-        /* BOUTON RETOUR */
-        .btn-back { 
-            display: inline-flex; align-items: center; gap: 12px; margin-top: 40px; 
-            color: var(--text); text-decoration: none; font-weight: 800; font-size: 0.75rem; 
-            padding: 16px 32px; border-radius: 18px; border: 1px solid var(--border); 
-            transition: 0.4s; background: rgba(255,255,255,0.02); letter-spacing: 2px;
-        }
-        .btn-back:hover { background: var(--accent); border-color: var(--accent); transform: translateX(-10px); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3); }
-
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3); }
     </style>
 </head>
 <body>
 
-    <div class="profile-container">
-        <div class="profile-header">
-            <div class="avatar-container">
-                <div class="avatar-circle" id="avatar-initial">?</div>
-            </div>
-            <div class="driver-info">
-                <h1 id="p-name">CHARGEMENT...</h1>
-                <div class="rank-group">
-                    <div class="rank-badge" id="p-rank">RECRUE</div>
-                    <span style="font-size: 0.65rem; color: var(--muted); font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
-                        Status: <span style="color: var(--success)">● Opérationnel</span>
-                    </span>
-                </div>
-                
+    <div class="profile-grid">
+        <div class="id-card">
+            <div class="avatar-circle">🚛</div>
+            <div class="driver-name" id="d-name">--</div>
+            <div class="driver-rank" id="d-rank">Conducteur Junior</div>
+            
+            <div style="margin-top: 40px; text-align: left;">
+                <span class="stat-lab">Progression Grade</span>
                 <div class="xp-bar-container">
-                    <div class="xp-label">
-                        <span>Liaison Expérience</span>
-                        <span id="xp-percent">0%</span>
-                    </div>
-                    <div class="xp-bg">
-                        <div class="xp-fill" id="p-xp-fill"></div>
-                    </div>
+                    <div class="xp-bar-fill" id="xp-fill" style="width: 0%"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.7rem; font-family: 'JetBrains Mono';">
+                    <span id="xp-current">0 XP</span>
+                    <span style="color: var(--muted);">LVL UP : 5000 XP</span>
                 </div>
             </div>
+
+            <a href="dashboard.html" class="btn-action btn-primary" style="margin-top: 50px; width: 100%; box-sizing: border-box;">RETOURNER AU LIVE</a>
         </div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">🛤️</div>
-                <div class="stat-label">Distance Totale</div>
-                <div class="stat-value" id="p-dist" style="color: var(--accent);">0 KM</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">💠</div>
-                <div class="stat-label">Score d'Expertise</div>
-                <div class="stat-value" id="p-xp">0 XP</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">💳</div>
-                <div class="stat-label">Capital Bancaire</div>
-                <div class="stat-value" id="p-wallet" style="color: var(--success);">0 €</div>
-            </div>
-        </div>
-
-        <div class="inventory-preview">
-            <div class="section-header">
-                <span>VÉHICULE DE FONCTION</span>
-                <div class="section-line"></div>
-            </div>
-            <div class="truck-card">
-                <div class="truck-icon-box">🚛</div>
-                <div>
-                    <div style="color: var(--muted); font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;">Unité de Transport</div>
-                    <div style="font-size: 1.5rem; font-weight: 900; font-family: 'JetBrains Mono'; margin-top: 5px;" id="p-truck">...</div>
-                    <div style="font-size: 0.65rem; color: var(--muted); margin-top: 8px; font-weight: 700; display: flex; gap: 15px;">
-                        <span>AUTO-PILOTE: ACTIF</span>
-                        <span>FUEL: 100%</span>
-                    </div>
+        <div class="main-content">
+            <div class="stats-row">
+                <div class="stat-box">
+                    <span class="stat-lab">Distance Totale</span>
+                    <span class="stat-val" id="d-dist">0 KM</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-lab">Solde Compte</span>
+                    <span class="stat-val" id="d-wallet">0 €</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-lab">Missions Finies</span>
+                    <span class="stat-val" id="d-jobs">0</span>
                 </div>
             </div>
-        </div>
 
-        <a href="index.html" class="btn-back">
-            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
-                <path d="M15 19l-7-7 7-7"></path>
-            </svg>
-            RETOUR AU TERMINAL
-        </a>
+            <div class="truck-display">
+                <div style="font-size: 4rem;">🚛</div>
+                <div class="truck-info">
+                    <h3>Unité Assignée</h3>
+                    <div class="truck-model" id="t-model">--</div>
+                    <p style="color: var(--muted); font-size: 0.85rem;" id="t-spec">Configuration Flotte Standard // État : Excellent</p>
+                </div>
+            </div>
+
+            
+        </div>
     </div>
 
     <script>
         const socket = io();
         const driverName = localStorage.getItem('driverName');
 
-        if(!driverName) window.location.href = 'login.html';
+        if (!driverName) window.location.href = 'login.html';
 
-        socket.emit('get_driver_full_profile', driverName);
+        // Demander les infos complètes au serveur
+        socket.emit('get_driver_profile', driverName);
 
-        socket.on('receive_profile_data', (data) => {
-            document.getElementById('p-name').innerText = data.name.toUpperCase();
-            document.getElementById('avatar-initial').innerText = data.name.charAt(0).toUpperCase();
+        socket.on('receive_driver_profile', (data) => {
+            document.getElementById('d-name').innerText = data.name;
+            document.getElementById('d-dist').innerText = Math.floor(data.distance).toLocaleString() + " KM";
+            document.getElementById('d-wallet').innerText = data.wallet.toLocaleString() + " €";
+            document.getElementById('t-model').innerText = data.truck.brand + " " + (data.truck.model || "");
             
-            document.getElementById('p-dist').innerText = Math.round(data.distance).toLocaleString() + " KM";
-            document.getElementById('p-xp').innerText = data.experience.toLocaleString() + " XP";
-            document.getElementById('p-wallet').innerText = Math.round(data.wallet).toLocaleString() + " €";
-
-            const level = Math.floor(data.experience / 1000) + 1;
-            const xpTowardsNextLevel = data.experience % 1000;
-            const progressPercent = xpTowardsNextLevel / 10;
-
-            document.getElementById('p-rank').innerText = getRankTitle(level) + " [LVL " + level + "]";
-            document.getElementById('p-xp-fill').style.width = progressPercent + "%";
-            document.getElementById('xp-percent').innerText = Math.floor(progressPercent) + "%";
-
-            if(data.inventory && data.inventory.length > 0) {
-                const latestTruck = data.inventory[data.inventory.length - 1];
-                document.getElementById('p-truck').innerText = latestTruck.model;
-            } else {
-                document.getElementById('p-truck').innerText = "AUCUN VÉHICULE";
-            }
+            // Calcul de la barre d'XP (basé sur un palier de 5000 pour l'exemple)
+            const progress = (data.experience / 5000) * 100;
+            document.getElementById('xp-fill').style.width = Math.min(progress, 100) + "%";
+            document.getElementById('xp-current').innerText = Math.floor(data.experience) + " XP";
         });
-
-        function getRankTitle(level) {
-            if(level < 5) return "RECRUE";
-            if(level < 15) return "OFFICIER";
-            if(level < 30) return "COMMANDANT";
-            if(level < 50) return "ÉLITE OPS";
-            return "LÉGENDE";
-        }
     </script>
 </body>
 </html>

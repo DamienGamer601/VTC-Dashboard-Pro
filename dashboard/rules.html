@@ -18,40 +18,42 @@
             margin: 0; padding: 40px 20px;
             background-image: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
             min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            overflow-x: hidden;
         }
 
-        /* Overlay technique */
+        /* Scanline Overlay */
         body::before {
             content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0,0,0,0.05) 1px, rgba(0,0,0,0.05) 2px);
-            pointer-events: none; z-index: 10;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px; pointer-events: none; z-index: 100; opacity: 0.1;
         }
 
         .rules-container { 
-            max-width: 750px; width: 100%; background: rgba(15, 23, 42, 0.8); 
+            max-width: 750px; width: 100%; background: rgba(15, 23, 42, 0.85); 
             padding: 60px; border-radius: 40px; border: 1px solid var(--border); 
             backdrop-filter: blur(20px); box-shadow: 0 40px 100px rgba(0,0,0,0.6);
             animation: emerge 0.8s cubic-bezier(0.22, 1, 0.36, 1);
             position: relative; z-index: 20;
         }
 
-        @keyframes emerge { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes emerge { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
         header { text-align: center; margin-bottom: 50px; }
         .subtitle { 
             font-size: 0.7rem; color: var(--accent); font-weight: 900; 
             text-transform: uppercase; letter-spacing: 5px; margin-bottom: 15px;
+            display: block;
         }
         header h1 { 
-            font-family: 'JetBrains Mono'; font-size: 2.2rem; letter-spacing: -1px; 
-            margin: 0; font-weight: 900; color: white;
+            font-family: 'JetBrains Mono'; font-size: 2.5rem; letter-spacing: -2px; 
+            margin: 0; font-weight: 900; color: white; line-height: 1;
         }
 
         .rules-content { margin-bottom: 50px; }
 
         .rule-item { 
             margin-bottom: 35px; position: relative; padding-left: 35px;
-            transition: all 0.3s ease;
+            transition: 0.3s;
         }
         .rule-item::before {
             content: ""; position: absolute; left: 0; top: 5px; bottom: 5px;
@@ -61,50 +63,48 @@
         .rule-item:hover::before { background: var(--accent); box-shadow: 0 0 15px var(--accent); }
 
         .rule-title { 
-            display: block; font-family: 'JetBrains Mono'; font-size: 0.7rem; 
-            color: var(--accent); margin-bottom: 10px; font-weight: 800; letter-spacing: 1px;
+            display: block; font-family: 'JetBrains Mono'; font-size: 0.75rem; 
+            color: var(--accent); margin-bottom: 8px; font-weight: 800; letter-spacing: 1px;
         }
-        .rule-text { font-size: 1rem; line-height: 1.7; color: #94a3b8; font-weight: 500; }
-        .rule-text strong { color: white; }
+        .rule-text { font-size: 1rem; line-height: 1.6; color: #94a3b8; font-weight: 500; margin: 0; }
+        .rule-text strong { color: #f8fafc; font-weight: 800; }
 
         .accept-section { 
-            background: rgba(2, 6, 23, 0.5); padding: 40px; border-radius: 25px;
+            background: rgba(2, 6, 23, 0.5); padding: 40px; border-radius: 30px;
             border: 1px solid var(--border); text-align: center;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
         }
 
         .checkbox-wrapper {
             display: flex; align-items: center; justify-content: center; gap: 15px;
-            cursor: pointer; margin-bottom: 30px; user-select: none;
-            transition: 0.2s;
+            cursor: pointer; margin-bottom: 30px; user-select: none; transition: 0.2s;
+            color: #94a3b8;
         }
-        .checkbox-wrapper:hover { color: var(--accent); }
+        .checkbox-wrapper:hover { color: white; }
 
         input[type="checkbox"] {
-            width: 24px; height: 24px; cursor: pointer; accent-color: var(--accent);
-            filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.5));
+            width: 22px; height: 22px; cursor: pointer; accent-color: var(--accent);
         }
 
         .btn-register { 
             display: block; width: 100%; padding: 22px; 
-            background: #1e293b; color: rgba(255,255,255,0.2); 
-            text-decoration: none; border-radius: 18px; font-weight: 900; 
-            font-size: 0.85rem; text-transform: uppercase; letter-spacing: 3px;
+            background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.2); 
+            text-decoration: none; border-radius: 20px; font-weight: 900; 
+            font-size: 0.9rem; text-transform: uppercase; letter-spacing: 3px;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            pointer-events: none; border: 1px solid rgba(255,255,255,0.05); text-align: center;
-            font-family: 'JetBrains Mono';
+            pointer-events: none; border: 1px solid rgba(255,255,255,0.05); 
+            font-family: 'JetBrains Mono'; text-align: center;
         }
 
         .btn-active { 
             background: var(--accent) !important; color: white !important; 
-            pointer-events: auto !important; box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
-            cursor: pointer; border-color: rgba(255,255,255,0.1);
+            pointer-events: auto !important; box-shadow: 0 15px 30px rgba(59, 130, 246, 0.4);
+            cursor: pointer;
         }
-        .btn-active:hover { transform: translateY(-5px); filter: brightness(1.1); }
+        .btn-active:hover { transform: translateY(-3px); filter: brightness(1.1); }
 
         footer { 
             text-align: center; margin-top: 40px; color: #475569; 
-            font-size: 0.65rem; letter-spacing: 2px; font-weight: 700;
+            font-size: 0.6rem; letter-spacing: 2px; font-weight: 700;
             text-transform: uppercase;
         }
     </style>
@@ -113,39 +113,39 @@
 
     <div class="rules-container">
         <header>
-            <div class="subtitle">Directive Opérationnelle</div>
+            <span class="subtitle">Directive Opérationnelle</span>
             <h1>CODE DE <span style="color:var(--accent)">CONDUITE</span></h1>
         </header>
         
         <div class="rules-content">
             <div class="rule-item">
                 <span class="rule-title">SÉCURITÉ ROUTIÈRE // SEC-01</span>
-                <p class="rule-text">Le respect du code de la route est <strong>impératif</strong>. Toute conduite jugée dangereuse (ramming, blocage) entraînera une révocation immédiate du permis de transport.</p>
+                <p class="rule-text">Le respect du code de la route est <strong>impératif</strong>. Toute conduite jugée dangereuse entraînera une révocation immédiate.</p>
             </div>
 
             <div class="rule-item">
                 <span class="rule-title">MAINTENANCE VÉHICULE // MAINT-02</span>
-                <p class="rule-text">Chaque chauffeur est responsable de son unité. Les livraisons doivent être effectuées avec <strong>moins de 5% de dégâts</strong> pour valider les primes d'excellence.</p>
+                <p class="rule-text">Les livraisons doivent être effectuées avec <strong>moins de 5% de dégâts</strong> pour valider les primes d'excellence.</p>
             </div>
 
             <div class="rule-item">
                 <span class="rule-title">IDENTITÉ VISUELLE // ID-03</span>
-                <p class="rule-text">Le port du <strong>Tag VTC Ops</strong> et les couleurs officielles de la flotte sont obligatoires lors de convoi sous escorte ou de missions publiques.</p>
+                <p class="rule-text">Le port du <strong>Tag VTC Ops</strong> et les couleurs officielles sont obligatoires lors des missions de flotte.</p>
             </div>
 
             <div class="rule-item">
                 <span class="rule-title">INTÉGRITÉ DU RÉSEAU // COM-04</span>
-                <p class="rule-text">La courtoisie sur la <strong>Radio CB (Canal 19)</strong> et le respect des autres usagers de la route sont le socle de notre réputation européenne.</p>
+                <p class="rule-text">La courtoisie sur la <strong>Radio CB</strong> et le respect des usagers sont le socle de notre réputation.</p>
             </div>
         </div>
 
         <div class="accept-section">
             <label class="checkbox-wrapper">
                 <input type="checkbox" id="check-rules">
-                <span style="font-size: 0.9rem; font-weight: 700;">J'accepte les termes du protocole VTC Ops</span>
+                <span style="font-size: 0.9rem; font-weight: 700;">J'accepte le protocole d'engagement VTC Ops</span>
             </label>
             
-            <a href="register.html" id="next-btn" class="btn-register">Accéder à l'Enrôlement</a>
+            <a href="register.html" id="next-btn" class="btn-register">Initialiser l'Enrôlement</a>
         </div>
 
         <footer>VTC OPS MGMT SYST — DOCUMENT RÉSERVÉ AU PERSONNEL ACCRÉDITÉ</footer>
@@ -159,13 +159,16 @@
             if(checkbox.checked) {
                 btn.classList.add('btn-active');
                 btn.innerText = "Dossier prêt pour enrôlement";
-                sessionStorage.setItem('rulesAccepted', 'true');
+                localStorage.setItem('rulesAccepted', 'true');
             } else {
                 btn.classList.remove('btn-active');
-                btn.innerText = "Accéder à l'enrôlement";
-                sessionStorage.removeItem('rulesAccepted');
+                btn.innerText = "Initialiser l'enrôlement";
+                localStorage.removeItem('rulesAccepted');
             }
         });
+        
+        // Nettoyage au chargement
+        localStorage.removeItem('rulesAccepted');
     </script>
 </body>
 </html>
