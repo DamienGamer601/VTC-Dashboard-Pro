@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTC Pro Dashboard - Live</title>
+    <title>VTC Pro - Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -12,162 +12,197 @@
             --accent: #00d1ff; 
             --danger: #ff4444;
             --success: #00ff88;
+            --warning: #ffcc00;
             --text: #e6edf3;
         }
 
         body { 
             background: var(--bg);
-            background-image: linear-gradient(rgba(0, 209, 255, 0.03) 1px, transparent 1px), 
-                              linear-gradient(90deg, rgba(0, 209, 255, 0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
+            background-image: radial-gradient(circle, #11141d 1px, transparent 1px);
+            background-size: 30px 30px;
             color: var(--text); 
             font-family: 'Rajdhani', sans-serif; 
             margin: 0;
             overflow-x: hidden;
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Layout Global */
+        .main-container { display: grid; grid-template-columns: 320px 1fr 320px; gap: 20px; padding: 20px; max-width: 1400px; margin: auto; }
+        .widget { background: var(--card); border-radius: 12px; padding: 20px; border: 1px solid rgba(0, 209, 255, 0.2); backdrop-filter: blur(10px); text-align: center; margin-bottom: 20px; }
 
-        /* Écran de Connexion */
-        #login-overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: radial-gradient(circle, #11141d 0%, #05070a 100%); 
-            z-index: 1000; display: flex; justify-content: center; align-items: center; 
-        }
-        .login-box { 
-            display: flex; flex-direction: column; align-items: center; padding: 40px; 
-            border: 2px solid var(--accent); border-radius: 15px; background: var(--card); 
-            box-shadow: 0 0 30px rgba(0, 209, 255, 0.2); animation: fadeIn 1.2s ease-out; 
-        }
-
-        /* Layout */
-        .main-container { 
-            display: grid; grid-template-columns: 320px 1fr 320px; gap: 25px; 
-            padding: 25px; max-width: 1600px; margin: auto; 
-        }
-
-        .widget { 
-            background: var(--card); border-radius: 12px; padding: 20px; 
-            border: 1px solid rgba(0, 209, 255, 0.2); backdrop-filter: blur(10px);
-            text-align: center; transition: 0.3s;
-        }
-
-        /* Vitesse */
-        .speed-value { font-family: 'Orbitron'; font-size: 6rem; color: var(--accent); line-height: 1; }
+        /* Vitesse & Gear */
+        .speed-value { font-family: 'Orbitron'; font-size: 5.5rem; color: var(--accent); line-height: 1; }
+        .gear-display { font-family: 'Orbitron'; font-size: 2.5rem; background: rgba(0,209,255,0.1); padding: 10px; border-radius: 8px; min-width: 60px; }
         
-        /* Jauges */
-        .progress-container { width: 100%; background: #1a1f2b; border-radius: 5px; height: 12px; margin-top: 15px; overflow: hidden; }
-        .progress-bar { height: 100%; width: 0%; transition: width 0.5s ease; }
+        /* Voyants */
+        .parking-indicator { width: 45px; height: 45px; border: 2px solid #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron'; color: #333; transition: 0.3s; }
+        .parking-active { border-color: var(--danger); color: var(--danger); box-shadow: 0 0 15px var(--danger); }
+        .cruise-active { border-color: var(--success); color: var(--success); box-shadow: 0 0 10px var(--success); }
+        
+        /* Progress Bars */
+        .progress-bar { height: 10px; background: #1a1f2b; border-radius: 5px; overflow: hidden; margin-top: 10px; }
+        .fill { height: 100%; width: 0%; transition: width 0.5s; }
 
-        /* Alerte Flash */
-        #flash-zone {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            z-index: 9999; width: 80%; max-width: 600px;
-        }
-        .flash-msg {
-            background: var(--danger); color: white; padding: 20px; border-radius: 8px;
-            font-weight: bold; text-align: center; border: 2px solid white;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: fadeIn 0.3s;
-        }
+        /* Radio & Flash */
+        .radio-playing { animation: pulse-red 1.5s infinite; box-shadow: 0 0 15px #ff0055; }
+        @keyframes pulse-red { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        #flash-box { display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:10000; background:var(--danger); color:white; padding:15px 40px; border-radius:8px; font-weight:bold; box-shadow:0 0 20px rgba(0,0,0,0.5); font-family:'Orbitron'; }
     </style>
 </head>
 <body>
 
-    <div id="flash-zone"></div>
-
-    <div id="login-overlay">
-        <div class="login-box">
-            <img src="logo.png" style="width: 220px; margin-bottom: 25px; filter: drop-shadow(0 0 10px var(--accent));">
-            <h1 style="font-family:'Orbitron'; color:var(--accent); margin-top:0;">ACCÈS CHAUFFEUR</h1>
-            <input type="text" id="username-input" placeholder="Pseudo..." style="padding:15px; border-radius:8px; border:1px solid #333; background:#0d1117; color:white; width:250px; text-align:center; margin-bottom: 15px;">
-            <button onclick="login()" style="padding:12px 40px; background:var(--accent); color:black; border:none; border-radius:8px; font-weight:bold; font-family:'Orbitron'; cursor:pointer; text-transform: uppercase;">Démarrer</button>
-        </div>
-    </div>
+    <div id="flash-box"></div>
 
     <div class="main-container">
+        
         <div class="side">
             <div class="widget">
                 <h3>⛽ CARBURANT</h3>
-                <div id="fuel" style="font-size: 2.5rem;">-- L</div>
-                <div class="progress-container">
-                    <div id="fuel-bar" class="progress-bar" style="background: var(--success);"></div>
-                </div>
+                <div id="fuel" style="font-size: 2rem;">-- L</div>
+                <div class="progress-bar"><div id="fuel-fill" class="fill" style="background: var(--success);"></div></div>
+            </div>
+
+            <div class="widget" style="border-color: gold;">
+                <h3>🛣️ STATISTIQUES</h3>
+                <div id="total-km" style="font-size: 2.2rem; color: gold;">0 KM</div>
+                <div id="grade" style="color: gray; font-size: 0.9rem; letter-spacing: 2px;">STAGIAIRE</div>
+            </div>
+
+            <div class="widget" style="border-color: var(--success);">
+                <h3>💰 PORTEFEUILLE</h3>
+                <div id="wallet" style="font-size: 2.2rem; color: var(--success);">0 €</div>
+                <div id="wallet-flow" style="font-size: 0.8rem; color: var(--danger); height: 15px;"></div>
             </div>
         </div>
 
         <div class="center">
             <div style="text-align:center; margin-bottom:15px; color:var(--accent); font-family:'Orbitron';">
-                UNITÉ ACTIVE : <span id="current-driver">---</span>
+                CHAUFFEUR : <span id="current-driver">---</span>
             </div>
+            
             <div class="widget">
+                <div style="display:flex; justify-content:center; gap:25px; align-items:center; margin-bottom:10px;">
+                    <div id="gear" class="gear-display">N</div>
+                    <div id="parking" class="parking-indicator">P</div>
+                </div>
                 <div class="speed-value" id="speed">0</div>
-                <div style="letter-spacing: 10px; font-weight: bold; color: gray;">KM/H</div>
+                <div style="color:gray; letter-spacing:8px; font-weight:bold;">KM/H</div>
+                
+                <div id="cruise-box" style="margin-top:15px; padding:5px 15px; border-radius:20px; background:rgba(255,255,255,0.05); display:inline-block; border:1px solid #333; color:#444;">
+                    ⏲ CRUISE: <span id="cruise-val">OFF</span>
+                </div>
+            </div>
+
+            <div class="widget" style="border-color: #ff00ff;">
+                <h3 style="color: #ff00ff;">📍 MISSION ASSIGNÉE</h3>
+                <div id="mission-dest" style="font-size: 1.4rem; font-weight: bold;">AUCUNE</div>
+                <div id="mission-cargo" style="color: gray; font-size: 0.9rem;">--</div>
             </div>
         </div>
 
         <div class="side">
             <div class="widget">
-                <h3>🔧 ÉTAT DU CAMION</h3>
-                <div id="damage" style="font-size: 2.5rem; color: var(--danger);">0%</div>
-                <div class="progress-container">
-                    <div id="damage-bar" class="progress-bar" style="background: var(--danger);"></div>
-                </div>
+                <h3>🔧 DÉGÂTS</h3>
+                <div id="damage" style="font-size: 2rem; color:var(--danger);">0%</div>
+                <div class="progress-bar"><div id="damage-fill" class="fill" style="background: var(--danger);"></div></div>
             </div>
-            <button onclick="logout()" style="margin-top: 25px; width: 100%; background: none; border: 1px dashed #444; color: gray; cursor: pointer; padding: 10px; border-radius: 5px;">✖ Déconnexion</button>
+
+            <div class="widget" style="border-color: #ff0055;">
+                <h3 style="color: #ff0055;">📻 RADIO VTC</h3>
+                <div id="radio-status" style="font-size: 0.8rem; color: gray; margin-bottom: 10px;">ÉTEINTE</div>
+                <button onclick="toggleRadio()" id="btn-radio" style="background:#ff0055; border:none; color:white; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; width:100%;">PLAY</button>
+                <audio id="vtc-radio" src="https://trucksim.fm/listen"></audio>
+            </div>
+
+            <button onclick="viewMyProfile()" style="width:100%; background:var(--accent); color:black; border:none; padding:12px; border-radius:5px; font-weight:bold; cursor:pointer; font-family:'Orbitron';">👤 MON PROFIL</button>
+            <a href="leaderboard.html" style="display:block; margin-top:15px; color:gray; text-decoration:none; text-align:center; font-size:0.8rem;">🏆 CLASSEMENT GÉNÉRAL</a>
+            
+            <button onclick="logout()" style="margin-top:20px; width:100%; background:none; border:1px solid #333; color:gray; cursor:pointer; padding:8px; border-radius:5px; font-size:0.7rem;">❌ FIN DE SERVICE</button>
         </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
+        const user = localStorage.getItem('vtcName');
+        let lastWallet = 0;
 
-        window.onload = () => {
-            const name = localStorage.getItem('driverName');
-            if(name) {
-                document.getElementById('login-overlay').style.display = 'none';
-                document.getElementById('current-driver').innerText = name.toUpperCase();
-            }
-        };
-
-        function login() {
-            const name = document.getElementById('username-input').value;
-            if(name.trim().length > 2) {
-                localStorage.setItem('driverName', name.trim());
-                location.reload();
-            }
-        }
+        // Sécurité : Redirection si non connecté
+        if (!user) { window.location.href = "login.html"; }
+        else { document.getElementById('current-driver').innerText = user.toUpperCase(); }
 
         function logout() {
-            localStorage.removeItem('driverName');
-            location.reload();
+            if(confirm("Terminer votre service et vous déconnecter ?")) {
+                localStorage.removeItem('vtcName');
+                window.location.href = "login.html";
+            }
         }
 
+        // Réception des données
         socket.on('update_dashboard', (data) => {
-            // Vitesse
-            const speed = data.truck.speed;
-            const speedEl = document.getElementById('speed');
-            speedEl.innerText = speed;
-            speedEl.style.color = speed > 90 ? 'var(--danger)' : 'var(--accent)';
+            // Uniquement si les données concernent le chauffeur connecté (ou broadcast)
+            document.getElementById('speed').innerText = data.truck.speed;
+            document.getElementById('speed').style.color = data.truck.speed > 90 ? 'var(--danger)' : 'var(--accent)';
+            
+            const g = data.truck.displayedGear;
+            document.getElementById('gear').innerText = g > 0 ? 'G'+g : (g < 0 ? 'R'+Math.abs(g) : 'N');
+            document.getElementById('parking').className = data.truck.parkBrakeOn ? 'parking-indicator parking-active' : 'parking-indicator';
+            
+            if(data.truck.cruiseControlOn) {
+                document.getElementById('cruise-box').classList.add('cruise-active');
+                document.getElementById('cruise-val').innerText = Math.round(data.truck.cruiseControlSpeed) + " KM/H";
+            } else {
+                document.getElementById('cruise-box').classList.remove('cruise-active');
+                document.getElementById('cruise-val').innerText = "OFF";
+            }
 
-            // Carburant (Estimation basique du % si fuelCapacity n'est pas dispo, sinon diviser)
-            const fuel = data.truck.fuel;
-            document.getElementById('fuel').innerText = Math.round(fuel) + " L";
-            document.getElementById('fuel-bar').style.width = "75%"; // À affiner selon le camion
+            document.getElementById('total-km').innerText = data.totalKM + " KM";
+            
+            // Portefeuille et Flow
+            if (lastWallet > data.wallet) {
+                document.getElementById('wallet-flow').innerText = "- " + (lastWallet - data.wallet).toFixed(2) + " €";
+                setTimeout(() => document.getElementById('wallet-flow').innerText = "", 2000);
+            }
+            document.getElementById('wallet').innerText = data.wallet.toLocaleString() + " €";
+            lastWallet = data.wallet;
 
-            // Dégâts
-            const wear = data.truck.wearSum || 0;
-            document.getElementById('damage').innerText = Math.round(wear) + "%";
-            document.getElementById('damage-bar').style.width = wear + "%";
+            // Fuel & Damage
+            const fPct = (data.truck.fuel / (data.truck.fuelCapacity || 400)) * 100;
+            document.getElementById('fuel-fill').style.width = fPct + "%";
+            document.getElementById('fuel').innerText = Math.round(data.truck.fuel) + " L";
+            
+            document.getElementById('damage-fill').style.width = data.truck.wearSum + "%";
+            document.getElementById('damage').innerText = Math.round(data.truck.wearSum) + "%";
+
+            if(data.job && data.job.destinationCity) {
+                document.getElementById('mission-dest').innerText = data.job.destinationCity.toUpperCase();
+                document.getElementById('mission-cargo').innerText = data.job.cargo;
+            }
         });
 
+        // Flash & Dispatch
         socket.on('receive_flash', (msg) => {
-            const zone = document.getElementById('flash-zone');
-            const el = document.createElement('div');
-            el.className = "flash-msg";
-            el.innerHTML = `⚠️ ALERTE ADMIN : ${msg}`;
-            zone.appendChild(el);
-            setTimeout(() => el.remove(), 10000);
+            const box = document.getElementById('flash-box');
+            box.innerText = "📢 " + msg; box.style.display = 'block';
+            setTimeout(() => box.style.display = 'none', 10000);
         });
+
+        socket.on('receive_dispatch', (data) => {
+            if (data.target.toLowerCase() === user.toLowerCase()) {
+                document.getElementById('mission-dest').innerText = data.city.toUpperCase();
+                document.getElementById('mission-cargo').innerText = data.cargo;
+                document.getElementById('mission-dest').style.color = "#00ff88";
+            }
+        });
+
+        // Radio Control
+        const audio = document.getElementById('vtc-radio');
+        function toggleRadio() {
+            if (audio.paused) { audio.play(); document.getElementById('btn-radio').innerText = "STOP"; document.getElementById('btn-radio').classList.add('radio-playing'); }
+            else { audio.pause(); document.getElementById('btn-radio').innerText = "PLAY"; document.getElementById('btn-radio').classList.remove('radio-playing'); }
+        }
+
+        function viewMyProfile() { window.location.href = "profile.html?user=" + user; }
     </script>
 </body>
 </html>

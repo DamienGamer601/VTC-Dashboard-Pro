@@ -1,38 +1,185 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil VTC</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron&family=Rajdhani:wght@700&display=swap" rel="stylesheet">
+    <title>Profil Chauffeur - VTC Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        body { background: #080a0f; color: white; font-family: 'Rajdhani', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: #11141d; border: 2px solid #00d1ff; border-radius: 20px; padding: 40px; text-align: center; width: 350px; }
-        .val { font-family: 'Orbitron'; color: #00d1ff; font-size: 1.5rem; }
-        .badge { background: #1a1d26; border: 1px solid #39ff14; padding: 5px; margin: 5px; font-size: 0.8rem; border-radius: 4px; display: inline-block; }
+        :root { 
+            --accent: #00d1ff; 
+            --bg: #05070a; 
+            --card: #11141d; 
+            --danger: #ff4444;
+            --success: #00ff88;
+        }
+
+        body { 
+            background: var(--bg); 
+            color: white; 
+            font-family: 'Rajdhani', sans-serif; 
+            margin: 0; 
+            padding: 40px;
+            background-image: radial-gradient(circle, #11141d 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .profile-container { max-width: 700px; margin: auto; }
+
+        .profile-card { 
+            background: var(--card); 
+            border: 2px solid var(--accent); 
+            border-radius: 25px; 
+            padding: 40px; 
+            box-shadow: 0 0 50px rgba(0, 209, 255, 0.15); 
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-card::before {
+            content: "VTC CERTIFIED";
+            position: absolute;
+            top: 20px;
+            right: -30px;
+            background: var(--accent);
+            color: black;
+            padding: 5px 40px;
+            transform: rotate(45deg);
+            font-family: 'Orbitron';
+            font-weight: bold;
+            font-size: 0.7rem;
+        }
+
+        .avatar { 
+            width: 130px; 
+            height: 130px; 
+            border-radius: 50%; 
+            border: 4px solid var(--accent); 
+            margin: 0 auto 20px; 
+            background: #080a0f; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 3.5rem; 
+            font-family: 'Orbitron'; 
+            color: var(--accent);
+            box-shadow: 0 0 20px rgba(0, 209, 255, 0.3);
+        }
+
+        h1 { font-family: 'Orbitron'; margin: 10px 0; color: white; letter-spacing: 2px; }
+        
+        .grade-badge { 
+            display: inline-block; 
+            padding: 6px 20px; 
+            border-radius: 20px; 
+            background: rgba(255,255,255,0.05); 
+            border: 1px solid #333;
+            margin-bottom: 30px; 
+            color: var(--accent);
+            font-family: 'Orbitron';
+            font-size: 0.8rem;
+        }
+
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 20px; 
+            text-align: left;
+        }
+
+        .stat-item { 
+            background: rgba(0,0,0,0.4); 
+            padding: 20px; 
+            border-radius: 15px; 
+            border: 1px solid #222; 
+            transition: 0.3s;
+        }
+
+        .stat-item:hover { border-color: var(--accent); transform: translateY(-5px); }
+
+        .stat-val { font-family: 'Orbitron'; font-size: 1.6rem; display: block; margin-bottom: 5px; }
+        .stat-label { font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+
+        .btn-back { 
+            display: inline-block; 
+            margin-top: 40px; 
+            color: gray; 
+            text-decoration: none; 
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+        .btn-back:hover { color: var(--accent); }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1 id="name" style="font-family: 'Orbitron';">---</h1>
-        <div id="rank" style="font-weight:bold; margin-bottom:20px;">RANK</div>
-        <p>DISTANCE</p><div id="dist" class="val">0 KM</div>
-        <p>SOLDE</p><div id="money" class="val" style="color:#39ff14">0 €</div>
-        <div id="badges-container" style="margin-top:20px;"></div>
-        <br><a href="index.html" style="color:#888; text-decoration:none;">← RETOUR</a>
+
+    <div class="profile-container">
+        <div class="profile-card">
+            <div class="avatar" id="p-initial">?</div>
+            <h1 id="p-name">CHARGEMENT...</h1>
+            <div class="grade-badge" id="p-grade">ANALYSE DU DOSSIER...</div>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">Distance Totale</span>
+                    <span class="stat-val" id="p-km" style="color: gold;">0 KM</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Capital Bancaire</span>
+                    <span class="stat-val" id="p-wallet" style="color: var(--success);">0 €</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Dépenses Carburant</span>
+                    <span class="stat-val" id="p-fuel" style="color: var(--danger);">0 €</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Dégâts & Réparations</span>
+                    <span class="stat-val" id="p-repair" style="color: var(--danger);">0 €</span>
+                </div>
+            </div>
+
+            <a href="index.html" class="btn-back">← RETOUR AU DASHBOARD</a>
+        </div>
     </div>
+
+    <script src="/socket.io/socket.io.js"></script>
     <script>
-        const name = localStorage.getItem('driverName') || "Chauffeur_1";
-        fetch(`/api/driver/${name}`).then(r => r.json()).then(data => {
-            document.getElementById('name').innerText = data.name;
-            document.getElementById('dist').innerText = Math.round(data.distance) + " KM";
-            document.getElementById('money').innerText = data.wallet.toLocaleString() + " €";
-            document.getElementById('rank').innerText = data.rank;
-            document.getElementById('rank').style.color = data.rankColor;
-            data.badges.forEach(b => {
-                const el = document.createElement('div'); el.className = 'badge';
-                el.innerText = b.name; document.getElementById('badges-container').appendChild(el);
-            });
+        const socket = io();
+        
+        // Extraction du nom dans l'URL (ex: profile.html?user=Damian)
+        const urlParams = new URLSearchParams(window.location.search);
+        const driverNameInUrl = urlParams.get('user');
+
+        socket.on('update_leaderboard', (drivers) => {
+            if(!driverNameInUrl) return;
+
+            // Trouver les données du chauffeur correspondant
+            const d = drivers.find(x => x.name.toLowerCase() === driverNameInUrl.toLowerCase());
+            
+            if(d) {
+                const km = Math.round(d.distance);
+                
+                // Remplissage des données
+                document.getElementById('p-name').innerText = d.name.toUpperCase();
+                document.getElementById('p-initial').innerText = d.name.charAt(0).toUpperCase();
+                document.getElementById('p-km').innerText = km + " KM";
+                document.getElementById('p-wallet').innerText = Math.floor(d.wallet).toLocaleString() + " €";
+                document.getElementById('p-fuel').innerText = "-" + Math.floor(d.totalFuelSpends || 0).toLocaleString() + " €";
+                document.getElementById('p-repair').innerText = "-" + Math.floor(d.totalRepairSpends || 0).toLocaleString() + " €";
+                
+                // Système de Grade
+                let grade = "🟢 STAGIAIRE";
+                if(km >= 5000) grade = "👑 LÉGENDE DU BITUME";
+                else if(km >= 2000) grade = "🟣 EXPERT DE LA ROUTE";
+                else if(km >= 500) grade = "🔵 CHAUFFEUR CONFIRMÉ";
+                
+                document.getElementById('p-grade').innerText = grade;
+                document.title = "Profil de " + d.name + " - VTC Pro";
+            } else {
+                document.getElementById('p-name').innerText = "INTROUVABLE";
+                document.getElementById('p-grade').innerText = "CHAUFFEUR NON RÉPERTORIÉ";
+            }
         });
     </script>
 </body>

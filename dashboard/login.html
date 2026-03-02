@@ -2,30 +2,166 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion VTC</title>
+    <title>Connexion Chauffeur - VTC Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        body { background: #080a0f; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-box { background: #11141d; padding: 40px; border-radius: 15px; border: 1px solid #00d1ff; text-align: center; }
-        input { padding: 10px; width: 200px; border-radius: 5px; border: none; margin-bottom: 20px; }
-        button { background: #00d1ff; color: black; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        :root {
+            --accent: #00d1ff;
+            --bg: #05070a;
+            --card: #11141d;
+        }
+
+        body {
+            background: var(--bg);
+            color: white;
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: radial-gradient(circle, #11141d 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .login-card {
+            background: var(--card);
+            border: 2px solid var(--accent);
+            border-radius: 20px;
+            padding: 40px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(0, 209, 255, 0.2);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        img.logo {
+            width: 120px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 10px var(--accent));
+        }
+
+        h1 {
+            font-family: 'Orbitron';
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+            color: var(--accent);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            font-family: 'Orbitron';
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #05070a;
+            color: white;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(0, 209, 255, 0.3);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: var(--accent);
+            color: black;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Orbitron';
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+            box-shadow: 0 0 20px rgba(0, 209, 255, 0.4);
+        }
+
+        .footer-text {
+            margin-top: 25px;
+            font-size: 0.8rem;
+            color: #444;
+        }
     </style>
 </head>
 <body>
-    <div class="login-box">
-        <h2>IDENTIFICATION CHAUFFEUR</h2>
-        <input type="text" id="username" placeholder="Entrez votre pseudo...">
-        <br>
-        <button onclick="login()">SE CONNECTER</button>
+
+    <div class="login-card">
+        <img src="logo.png" alt="VTC Logo" class="logo">
+        <h1>ACCÈS TERMINAL</h1>
+
+        <div class="input-group">
+            <label>Identifiant Chauffeur</label>
+            <input type="text" id="driver-name" placeholder="Ex: Damian_77" autocomplete="off">
+        </div>
+
+        <button onclick="startSession()">Prendre son Service</button>
+
+        <div class="footer-text">
+            SCS TELEMETRY SYSTEM v4.0<br>
+            Connecté au Cloud MongoDB
+        </div>
     </div>
+
     <script>
-        function login() {
-            const name = document.getElementById('username').value;
-            if(name) {
-                localStorage.setItem('driverName', name);
-                window.location.href = "index.html";
-            }
+        // Si déjà connecté, on redirige direct
+        if(localStorage.getItem('vtcName')) {
+            window.location.href = "index.html";
         }
+
+        function startSession() {
+            const name = document.getElementById('driver-name').value.trim();
+            
+            if(name.length < 3) {
+                alert("Le nom doit contenir au moins 3 caractères.");
+                return;
+            }
+
+            // Sauvegarde locale pour le dashboard
+            localStorage.setItem('vtcName', name);
+            
+            // Redirection vers le dashboard principal
+            window.location.href = "index.html";
+        }
+
+        // Permettre de valider avec la touche Entrée
+        document.getElementById('driver-name').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                startSession();
+            }
+        });
     </script>
 </body>
 </html>

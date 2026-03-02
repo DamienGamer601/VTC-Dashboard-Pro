@@ -1,29 +1,163 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hall of Fame</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron&family=Rajdhani:wght@700&display=swap" rel="stylesheet">
+    <title>Classement Officiel - VTC Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        body { background: #080a0f; color: white; font-family: 'Rajdhani', sans-serif; padding: 50px; text-align: center; }
-        table { width: 80%; margin: 20px auto; border-collapse: collapse; background: #11141d; border: 1px solid #252a37; }
-        th, td { padding: 15px; border-bottom: 1px solid #252a37; }
-        th { color: #00d1ff; text-transform: uppercase; }
+        :root { 
+            --accent: #00d1ff; 
+            --bg: #05070a; 
+            --card: #11141d; 
+            --danger: #ff4444;
+            --success: #00ff88;
+            --gold: #ffd700;
+        }
+
+        body { 
+            background: var(--bg); 
+            color: white; 
+            font-family: 'Rajdhani', sans-serif; 
+            margin: 0; 
+            padding: 40px;
+            background-image: radial-gradient(circle, #11141d 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .container { max-width: 1000px; margin: auto; }
+
+        h1, h2 { font-family: 'Orbitron'; text-transform: uppercase; text-align: center; margin-bottom: 30px; }
+        h1 { color: var(--accent); letter-spacing: 4px; }
+        h2 { color: #ff00ff; font-size: 1.2rem; margin-top: 50px; }
+
+        .leaderboard-card { 
+            background: var(--card); 
+            border: 1px solid rgba(0, 209, 255, 0.3); 
+            border-radius: 15px; 
+            padding: 20px; 
+            box-shadow: 0 0 30px rgba(0, 209, 255, 0.1); 
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { 
+            font-family: 'Orbitron'; 
+            font-size: 0.8rem; 
+            color: var(--accent); 
+            text-align: left; 
+            padding: 15px; 
+            border-bottom: 2px solid #222; 
+        }
+        td { padding: 15px; border-bottom: 1px solid #1a1f2b; font-size: 1.1rem; }
+
+        tr:hover { background: rgba(255, 255, 255, 0.02); }
+        
+        .rank { font-family: 'Orbitron'; font-weight: bold; width: 50px; }
+        .driver-link { color: white; text-decoration: none; font-weight: bold; transition: 0.2s; }
+        .driver-link:hover { color: var(--accent); }
+        
+        .gold-row { border-left: 4px solid var(--gold); background: rgba(255, 215, 0, 0.05); }
+        .gold-row .rank { color: var(--gold); }
+
+        .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; background: #222; color: gray; margin-left: 10px; vertical-align: middle; }
+
+        .back-link { display: block; text-align: center; margin-top: 30px; color: gray; text-decoration: none; }
+        .back-link:hover { color: white; }
     </style>
 </head>
 <body>
-    <h1 style="font-family:'Orbitron'; color:#00d1ff;">HALL OF FAME</h1>
-    <table>
-        <thead><tr><th>Rang</th><th>Chauffeur</th><th>Distance</th><th>Fortune</th></tr></thead>
-        <tbody id="lb-body"></tbody>
-    </table>
-    <br><a href="index.html" style="color:#888; text-decoration:none;">RETOUR</a>
+
+    <div class="container">
+        <h1>🏆 CLASSEMENT VTC</h1>
+
+        <div class="leaderboard-card">
+            <table id="leader-table">
+                <thead>
+                    <tr>
+                        <th>RANG</th>
+                        <th>CHAUFFEUR</th>
+                        <th>DISTANCE</th>
+                        <th>CAPITAL</th>
+                        <th style="color:var(--danger)">⛽ CARBU</th>
+                        <th style="color:var(--danger)">🔧 DÉGÂTS</th>
+                    </tr>
+                </thead>
+                <tbody id="leader-body">
+                    </tbody>
+            </table>
+        </div>
+
+        <h2>📋 DERNIERS RAPPORTS DE LIVRAISON</h2>
+        <div class="leaderboard-card" style="border-color: #ff00ff; margin-bottom: 50px;">
+            <table id="history-table">
+                <thead>
+                    <tr>
+                        <th>CHAUFFEUR</th>
+                        <th>DESTINATION</th>
+                        <th>MARCHANDISE</th>
+                        <th>PRIME</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body">
+                    </tbody>
+            </table>
+        </div>
+
+        <a href="index.html" class="back-link">← Retour au Dashboard</a>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
     <script>
-        fetch('/api/leaderboard').then(r => r.json()).then(data => {
-            const body = document.getElementById('lb-body');
-            data.forEach((d, i) => {
-                body.innerHTML += `<tr><td>#${i+1}</td><td>${d.name}</td><td>${Math.round(d.distance)} KM</td><td style="color:#39ff14">${d.wallet} €</td></tr>`;
+        const socket = io();
+
+        // Mise à jour du classement des chauffeurs
+        socket.on('update_leaderboard', (drivers) => {
+            const body = document.getElementById('leader-body');
+            body.innerHTML = "";
+
+            // Tri par distance décroissante
+            drivers.sort((a, b) => b.distance - a.distance);
+
+            drivers.forEach((d, index) => {
+                const isFirst = index === 0;
+                const km = Math.round(d.distance);
+                
+                // Calcul du badge
+                let badge = "STAGIAIRE";
+                if(km >= 5000) badge = "👑 LÉGENDE";
+                else if(km >= 2000) badge = "🟣 EXPERT";
+                else if(km >= 500) badge = "🔵 CONFIRMÉ";
+
+                body.innerHTML += `
+                    <tr class="${isFirst ? 'gold-row' : ''}">
+                        <td class="rank">#${index + 1}</td>
+                        <td>
+                            <a href="profile.html?user=${d.name}" class="driver-link">${d.name.toUpperCase()}</a>
+                            <span class="badge">${badge}</span>
+                        </td>
+                        <td style="font-weight:bold;">${km} KM</td>
+                        <td style="color:var(--success); font-weight:bold;">${Math.floor(d.wallet).toLocaleString()} €</td>
+                        <td style="color:var(--danger); font-size:0.9rem;">-${Math.floor(d.totalFuelSpends || 0)}€</td>
+                        <td style="color:var(--danger); font-size:0.9rem;">-${Math.floor(d.totalRepairSpends || 0)}€</td>
+                    </tr>
+                `;
+            });
+        });
+
+        // Mise à jour de l'historique des missions
+        socket.on('update_history', (deliveries) => {
+            const hBody = document.getElementById('history-body');
+            hBody.innerHTML = "";
+
+            deliveries.forEach(del => {
+                hBody.innerHTML += `
+                    <tr>
+                        <td><strong>${del.driverName.toUpperCase()}</strong></td>
+                        <td style="color:var(--accent)">📍 ${del.destination}</td>
+                        <td style="color:gray italic">${del.cargo}</td>
+                        <td style="color:var(--success)">+ ${del.reward} €</td>
+                    </tr>
+                `;
             });
         });
     </script>
