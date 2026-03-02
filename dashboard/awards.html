@@ -2,15 +2,47 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mes Trophées - VTC Ops</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-        :root { --bg: #020617; --card: #1e293b; --accent: #3b82f6; --text: #f8fafc; }
+        :root { 
+            --bg: #020617; --card: #1e293b; --accent: #3b82f6; 
+            --text: #f8fafc; --muted: #64748b; --border: rgba(51, 65, 85, 0.5);
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+        }
         
-        /* On ajuste le body pour la navbar */
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding-bottom: 40px; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+
+        /* --- STYLE NAVBAR --- */
+        .main-nav {
+            background: #0f172a;
+            border-bottom: 1px solid var(--border);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-logo { font-family: 'JetBrains Mono'; font-weight: 800; font-size: 1.2rem; }
+        .nav-logo span { color: var(--accent); }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: 0.3s; }
+        .nav-links a:hover { color: var(--accent); }
+        .nav-links a.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+        
+        .nav-right { display: flex; align-items: center; gap: 20px; }
+        .btn-logout { 
+            background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid var(--danger);
+            padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.8rem;
+        }
+        .btn-logout:hover { background: var(--danger); color: white; }
+
+        /* --- STYLE CONTENU --- */
         .content { padding: 40px; }
-        
         .awards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 30px; }
         
         .award-card { 
@@ -19,7 +51,6 @@
             filter: grayscale(1); opacity: 0.5; transform: scale(0.95);
         }
         
-        /* Animation quand le trophée est débloqué */
         .award-card.unlocked { 
             filter: grayscale(0); opacity: 1; border-color: var(--accent);
             box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);
@@ -39,22 +70,42 @@
 </head>
 <body>
 
+    <nav class="main-nav">
+        <div class="nav-logo">VTC<span>OPS</span></div>
+        <div class="nav-links">
+            <a href="index.html">Tableau de bord</a>
+            <a href="hiring.html">Recrutement</a>
+            <a href="awards.html" class="active">Trophées</a>
+            <a href="admin.html" style="color: var(--warning)">Admin</a>
+        </div>
+        <div class="nav-right">
+            <button onclick="logout()" class="btn-logout">Déconnexion</button>
+        </div>
+    </nav>
+
     <div class="content">
         <h1 style="font-family: 'JetBrains Mono'; margin-top: 0;">🏆 SALON DES <span style="color:var(--accent)">TROPHÉES</span></h1>
-        <p style="color: #94a3b8;">Relevez des défis pour décorer votre profil de chauffeur et prouver votre valeur.</p>
+        <p style="color: #94a3b8;">Réalisez des exploits pour débloquer vos badges de chauffeur.</p>
 
         <div id="awards-list" class="awards-grid">
             </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="nav.js"></script> <script>
+    <script>
         const socket = io();
         const myName = localStorage.getItem('driverName');
 
+        // Sécurité : redirection si pas de nom de chauffeur
         if (!myName) window.location.href = "login.html";
 
-        // Demander l'état des trophées dès la connexion
+        function logout() {
+            if(confirm("Voulez-vous vraiment vous déconnecter ?")) {
+                localStorage.clear();
+                window.location.href = "login.html";
+            }
+        }
+
+        // Demander les trophées au serveur
         socket.emit('get_awards_status', myName);
 
         socket.on('receive_awards', (data) => {
@@ -66,7 +117,7 @@
             }
 
             container.innerHTML = data.all.map(a => {
-                const isUnlocked = data.mine.includes(a.id);
+                const isUnlocked = data.mine && data.mine.includes(a.id);
                 return `
                     <div class="award-card ${isUnlocked ? 'unlocked' : ''}">
                         <span class="award-icon">${a.icon}</span>

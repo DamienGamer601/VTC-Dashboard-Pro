@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Charte Conducteur - VTC Ops</title>
     <link rel="icon" type="image/png" href="logo.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --bg: #020617; --card: #1e293b; --accent: #3b82f6; 
-            --text: #f8fafc; --muted: #94a3b8; --border: #334155;
+            --bg: #020617; --card: #0f172a; --accent: #3b82f6; 
+            --text: #f8fafc; --muted: #64748b; --border: rgba(51, 65, 85, 0.6);
             --success: #10b981;
         }
 
@@ -20,113 +20,135 @@
             min-height: 100vh; display: flex; align-items: center; justify-content: center;
         }
 
+        /* Overlay technique */
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0,0,0,0.05) 1px, rgba(0,0,0,0.05) 2px);
+            pointer-events: none; z-index: 10;
+        }
+
         .rules-container { 
-            max-width: 700px; width: 100%; background: rgba(30, 41, 59, 0.6); 
-            padding: 50px; border-radius: 32px; border: 1px solid var(--border); 
-            backdrop-filter: blur(10px); box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-            animation: fadeIn 0.6s ease-out;
+            max-width: 750px; width: 100%; background: rgba(15, 23, 42, 0.8); 
+            padding: 60px; border-radius: 40px; border: 1px solid var(--border); 
+            backdrop-filter: blur(20px); box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+            animation: emerge 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+            position: relative; z-index: 20;
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes emerge { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
-        header { text-align: center; margin-bottom: 40px; }
+        header { text-align: center; margin-bottom: 50px; }
+        .subtitle { 
+            font-size: 0.7rem; color: var(--accent); font-weight: 900; 
+            text-transform: uppercase; letter-spacing: 5px; margin-bottom: 15px;
+        }
         header h1 { 
-            font-family: 'JetBrains Mono'; font-size: 1.8rem; letter-spacing: 4px; 
-            margin: 10px 0; font-weight: 900; 
+            font-family: 'JetBrains Mono'; font-size: 2.2rem; letter-spacing: -1px; 
+            margin: 0; font-weight: 900; color: white;
         }
-        .subtitle { font-size: 0.8rem; color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
 
-        .rules-content { margin-bottom: 40px; }
+        .rules-content { margin-bottom: 50px; }
 
         .rule-item { 
-            margin-bottom: 30px; position: relative; padding-left: 30px;
-            transition: 0.3s;
+            margin-bottom: 35px; position: relative; padding-left: 35px;
+            transition: all 0.3s ease;
         }
         .rule-item::before {
-            content: ""; position: absolute; left: 0; top: 0; bottom: 0;
-            width: 4px; background: var(--border); border-radius: 2px; transition: 0.3s;
+            content: ""; position: absolute; left: 0; top: 5px; bottom: 5px;
+            width: 4px; background: var(--border); border-radius: 10px; transition: 0.4s;
         }
-        .rule-item:hover::before { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+        .rule-item:hover { transform: translateX(10px); }
+        .rule-item:hover::before { background: var(--accent); box-shadow: 0 0 15px var(--accent); }
 
         .rule-title { 
-            display: block; font-family: 'JetBrains Mono'; font-size: 0.75rem; 
-            color: var(--accent); margin-bottom: 8px; font-weight: 700;
+            display: block; font-family: 'JetBrains Mono'; font-size: 0.7rem; 
+            color: var(--accent); margin-bottom: 10px; font-weight: 800; letter-spacing: 1px;
         }
-        .rule-text { font-size: 0.95rem; line-height: 1.6; color: #cbd5e1; }
+        .rule-text { font-size: 1rem; line-height: 1.7; color: #94a3b8; font-weight: 500; }
+        .rule-text strong { color: white; }
 
         .accept-section { 
-            background: rgba(15, 23, 42, 0.4); padding: 30px; border-radius: 20px;
+            background: rgba(2, 6, 23, 0.5); padding: 40px; border-radius: 25px;
             border: 1px solid var(--border); text-align: center;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
         }
 
         .checkbox-wrapper {
-            display: flex; align-items: center; justify-content: center; gap: 12px;
-            cursor: pointer; margin-bottom: 25px; user-select: none;
+            display: flex; align-items: center; justify-content: center; gap: 15px;
+            cursor: pointer; margin-bottom: 30px; user-select: none;
+            transition: 0.2s;
         }
+        .checkbox-wrapper:hover { color: var(--accent); }
 
         input[type="checkbox"] {
-            width: 22px; height: 22px; cursor: pointer; accent-color: var(--accent);
+            width: 24px; height: 24px; cursor: pointer; accent-color: var(--accent);
+            filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.5));
         }
 
         .btn-register { 
-            display: block; width: 100%; padding: 18px; 
-            background: #475569; color: rgba(255,255,255,0.4); 
-            text-decoration: none; border-radius: 14px; font-weight: 900; 
-            font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px;
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            pointer-events: none; border: none; text-align: center;
+            display: block; width: 100%; padding: 22px; 
+            background: #1e293b; color: rgba(255,255,255,0.2); 
+            text-decoration: none; border-radius: 18px; font-weight: 900; 
+            font-size: 0.85rem; text-transform: uppercase; letter-spacing: 3px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none; border: 1px solid rgba(255,255,255,0.05); text-align: center;
+            font-family: 'JetBrains Mono';
         }
 
         .btn-active { 
             background: var(--accent) !important; color: white !important; 
-            pointer-events: auto !important; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
-            cursor: pointer;
+            pointer-events: auto !important; box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
+            cursor: pointer; border-color: rgba(255,255,255,0.1);
         }
-        .btn-active:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(59, 130, 246, 0.4); }
+        .btn-active:hover { transform: translateY(-5px); filter: brightness(1.1); }
 
-        footer { text-align: center; margin-top: 30px; color: var(--muted); font-size: 0.7rem; letter-spacing: 1px; }
+        footer { 
+            text-align: center; margin-top: 40px; color: #475569; 
+            font-size: 0.65rem; letter-spacing: 2px; font-weight: 700;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
 
     <div class="rules-container">
         <header>
-            <div class="subtitle">Protocole Interne</div>
-            <h1>CODE DE <span style="color:white">CONDUITE</span></h1>
+            <div class="subtitle">Directive Opérationnelle</div>
+            <h1>CODE DE <span style="color:var(--accent)">CONDUITE</span></h1>
         </header>
         
         <div class="rules-content">
             <div class="rule-item">
-                <span class="rule-title">SECTION 01 // OPÉRATIONS ROUTIÈRES</span>
-                <p class="rule-text">Le respect du code de la route est non-négociable. La conduite dangereuse (arcade, ramming) impactera votre prime de fin de mois.</p>
+                <span class="rule-title">SÉCURITÉ ROUTIÈRE // SEC-01</span>
+                <p class="rule-text">Le respect du code de la route est <strong>impératif</strong>. Toute conduite jugée dangereuse (ramming, blocage) entraînera une révocation immédiate du permis de transport.</p>
             </div>
 
             <div class="rule-item">
-                <span class="rule-title">SECTION 02 // MAINTENANCE FLOTTE</span>
-                <p class="rule-text">Tout véhicule présentant plus de 5% de dégâts doit être immobilisé pour maintenance immédiate au garage le plus proche.</p>
+                <span class="rule-title">MAINTENANCE VÉHICULE // MAINT-02</span>
+                <p class="rule-text">Chaque chauffeur est responsable de son unité. Les livraisons doivent être effectuées avec <strong>moins de 5% de dégâts</strong> pour valider les primes d'excellence.</p>
             </div>
 
             <div class="rule-item">
-                <span class="rule-title">SECTION 03 // DISCIPLINE RÉSEAU</span>
-                <p class="rule-text">Le port du tag de l'entreprise et une attitude courtoise sur la radio CB sont obligatoires lors de toutes vos missions officielles.</p>
+                <span class="rule-title">IDENTITÉ VISUELLE // ID-03</span>
+                <p class="rule-text">Le port du <strong>Tag VTC Ops</strong> et les couleurs officielles de la flotte sont obligatoires lors de convoi sous escorte ou de missions publiques.</p>
             </div>
 
             <div class="rule-item">
-                <span class="rule-title">SECTION 04 // ÉTHIQUE COMMUNAUTAIRE</span>
-                <p class="rule-text">La VTC Ops repose sur le respect mutuel. Aucun comportement toxique ne sera toléré sur nos outils de communication (Discord/Radio).</p>
+                <span class="rule-title">INTÉGRITÉ DU RÉSEAU // COM-04</span>
+                <p class="rule-text">La courtoisie sur la <strong>Radio CB (Canal 19)</strong> et le respect des autres usagers de la route sont le socle de notre réputation européenne.</p>
             </div>
         </div>
 
         <div class="accept-section">
             <label class="checkbox-wrapper">
                 <input type="checkbox" id="check-rules">
-                <span style="font-size: 0.85rem; font-weight: 600;">Je jure de respecter la charte de la VTC Ops</span>
+                <span style="font-size: 0.9rem; font-weight: 700;">J'accepte les termes du protocole VTC Ops</span>
             </label>
             
-            <a href="register.html" id="next-btn" class="btn-register">Initialiser l'Enrôlement</a>
+            <a href="register.html" id="next-btn" class="btn-register">Accéder à l'Enrôlement</a>
         </div>
 
-        <footer>VTC OPS MANAGEMENT SYSTEM — DOCUMENT CLASSÉ CONFIDENTIEL</footer>
+        <footer>VTC OPS MGMT SYST — DOCUMENT RÉSERVÉ AU PERSONNEL ACCRÉDITÉ</footer>
     </div>
 
     <script>
@@ -136,9 +158,11 @@
         checkbox.addEventListener('change', () => {
             if(checkbox.checked) {
                 btn.classList.add('btn-active');
+                btn.innerText = "Dossier prêt pour enrôlement";
                 sessionStorage.setItem('rulesAccepted', 'true');
             } else {
                 btn.classList.remove('btn-active');
+                btn.innerText = "Accéder à l'enrôlement";
                 sessionStorage.removeItem('rulesAccepted');
             }
         });

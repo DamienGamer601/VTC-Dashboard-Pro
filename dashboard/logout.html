@@ -5,74 +5,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fin de Service - VTC Ops</title>
     <link rel="icon" type="image/png" href="logo.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --bg: #020617; --card: #1e293b; --accent: #3b82f6; 
-            --text: #f8fafc; --muted: #94a3b8; --border: #334155;
+            --bg: #020617; --card: #0f172a; --accent: #3b82f6; 
+            --text: #f8fafc; --muted: #64748b; --border: rgba(51, 65, 85, 0.6);
         }
 
         body { 
             background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
             margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh;
             text-align: center; overflow: hidden;
-            background-image: 
-                linear-gradient(rgba(2, 6, 23, 0.8), rgba(2, 6, 23, 0.8)),
-                url('https://images.unsplash.com/photo-1586191582151-f737730a1632?auto=format&fit=crop&q=80&w=1000'); /* Optionnel: Image de camion floue en fond */
-            background-size: cover; background-position: center;
+            background-image: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+        }
+
+        /* Scanline Overlay identique au login pour la cohérence */
+        body::before {
+            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            z-index: 100; background-size: 100% 3px, 3px 100%; pointer-events: none; opacity: 0.3;
         }
 
         .logout-box {
-            background: rgba(30, 41, 59, 0.7); padding: 50px; border-radius: 30px;
-            border: 1px solid var(--border); backdrop-filter: blur(15px);
+            background: rgba(15, 23, 42, 0.8); padding: 60px 40px; border-radius: 40px;
+            border: 1px solid var(--border); backdrop-filter: blur(20px);
             max-width: 450px; width: 90%;
-            animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            animation: shutdown 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.7);
+            position: relative; z-index: 10;
+        }
+
+        @keyframes shutdown {
+            from { opacity: 0; transform: scale(1.1) translateY(-20px); filter: blur(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
         }
 
         .status-light {
-            width: 12px; height: 12px; background: var(--accent);
-            border-radius: 50%; margin: 0 auto 20px;
-            box-shadow: 0 0 15px var(--accent);
-            animation: blink 1s infinite;
+            width: 14px; height: 14px; background: var(--accent);
+            border-radius: 50%; margin: 0 auto 30px;
+            box-shadow: 0 0 20px var(--accent);
+            animation: pulse 1.5s infinite ease-in-out;
         }
 
-        h1 { font-family: 'JetBrains Mono'; font-size: 1.8rem; letter-spacing: 3px; margin: 0 0 15px 0; font-weight: 900; }
-        p { color: var(--muted); font-size: 0.95rem; line-height: 1.6; margin: 5px 0; }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.5; box-shadow: 0 0 30px var(--accent); }
+        }
+
+        h1 { font-family: 'JetBrains Mono'; font-size: 2rem; letter-spacing: -1px; margin: 0 0 10px 0; font-weight: 900; text-transform: uppercase; }
+        .subtitle { color: var(--muted); font-size: 0.9rem; font-weight: 600; margin-bottom: 30px; }
+
+        .driver-info {
+            background: rgba(0,0,0,0.3); padding: 15px; border-radius: 15px;
+            border: 1px solid var(--border); margin-bottom: 30px;
+        }
 
         .console-text {
             font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--accent);
-            margin-top: 25px; text-transform: uppercase; letter-spacing: 1px;
-            opacity: 0.8;
+            margin-top: 40px; text-transform: uppercase; letter-spacing: 2px;
+            min-height: 1em;
         }
 
-        /* Barre de progression style "Terminal" */
+        /* Loader technique */
         .loader-container {
-            margin-top: 35px; width: 100%; height: 6px;
-            background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden;
-            border: 1px solid var(--border);
+            margin-top: 20px; width: 100%; height: 4px;
+            background: rgba(0,0,0,0.5); border-radius: 10px; overflow: hidden;
         }
         .loader-bar {
-            width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent), #60a5fa);
-            box-shadow: 0 0 10px var(--accent);
-            animation: loadProgress 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-
-        @keyframes scaleIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.8); }
+            width: 0%; height: 100%; background: var(--accent);
+            box-shadow: 0 0 15px var(--accent);
+            animation: loadProgress 2.8s cubic-bezier(0.65, 0, 0.35, 1) forwards;
         }
 
         @keyframes loadProgress {
             0% { width: 0%; }
-            30% { width: 45%; }
-            70% { width: 60%; }
+            40% { width: 30%; }
+            80% { width: 85%; }
             100% { width: 100%; }
+        }
+
+        .flicker { animation: flicker 0.1s infinite; }
+        @keyframes flicker {
+            0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 0.9; }
         }
     </style>
 </head>
@@ -80,12 +95,19 @@
 
     <div class="logout-box">
         <div class="status-light"></div>
-        <h1>FIN DE SERVICE</h1>
+        <h1>Fin de Service</h1>
+        <div class="subtitle">Session en cours de clôture</div>
         
-        <p>Excellent travail, Chauffeur <strong id="driver-name" style="color: white;">...</strong>.</p>
-        <p style="font-size: 0.8rem;">Votre journal de bord a été archivé.</p>
+        <div class="driver-info">
+            <p style="margin: 0; font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;">Unité identifiée</p>
+            <p id="driver-name" style="margin: 5px 0 0 0; font-family: 'JetBrains Mono'; font-size: 1.2rem; font-weight: 800; color: white;">...</p>
+        </div>
         
-        <div class="console-text" id="status-msg">Déconnexion du serveur central...</div>
+        <p style="color: var(--muted); font-size: 0.8rem; line-height: 1.6;">
+            Toutes les données de télémétrie et les relevés financiers ont été transmis au central.
+        </p>
+        
+        <div class="console-text" id="status-msg">Préparation de la sortie...</div>
         
         <div class="loader-container">
             <div class="loader-bar"></div>
@@ -93,34 +115,42 @@
     </div>
 
     <script>
-        const name = localStorage.getItem('driverName') || "Elite";
-        document.getElementById('driver-name').innerText = name;
+        const name = localStorage.getItem('driverName') || "CHAUFFEUR";
+        document.getElementById('driver-name').innerText = name.toUpperCase();
 
         const statusMsg = document.getElementById('status-msg');
         const stages = [
-            "Synchronisation GPS...",
-            "Transmission des relevés de péages...",
-            "Verrouillage du terminal...",
-            "Service terminé."
+            "Upload du logbook...",
+            "Calcul des primes de nuit...",
+            "Mise en veille du moteur...",
+            "Déconnexion satellite...",
+            "TERMINAL HORS LIGNE"
         ];
 
-        // Faire défiler les messages de console
         let i = 0;
         const interval = setInterval(() => {
             if (i < stages.length) {
                 statusMsg.innerText = stages[i];
+                if (i === stages.length - 1) statusMsg.style.color = "#ef4444";
                 i++;
             } else {
                 clearInterval(interval);
             }
-        }, 500);
+        }, 550);
 
-        // Nettoyage et redirection
+        // Nettoyage définitif et redirection
         setTimeout(() => {
             localStorage.clear();
             sessionStorage.clear();
-            window.location.href = 'login.html';
-        }, 2800);
+            // Effet de fondu au noir avant de partir
+            document.body.style.transition = "all 0.5s ease";
+            document.body.style.opacity = "0";
+            document.body.style.transform = "scale(0.95)";
+            
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 500);
+        }, 3200);
     </script>
 </body>
 </html>

@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Identification - VTC Ops</title>
     <link rel="icon" type="image/png" href="logo.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
         :root { 
-            --bg: #020617; --card: #1e293b; --accent: #3b82f6; 
-            --text: #f8fafc; --muted: #94a3b8; --border: #334155;
+            --bg: #020617; --card: #0f172a; --accent: #3b82f6; 
+            --text: #f8fafc; --muted: #64748b; --border: rgba(51, 65, 85, 0.6);
             --success: #10b981; --danger: #ef4444;
         }
 
@@ -17,79 +18,96 @@
             background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
             margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh;
             overflow: hidden;
+            background-image: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
         }
 
-        /* Effet de fond "Scanline" */
+        /* Effet Scanline Cyberpunk */
         body::before {
             content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
-            z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            z-index: 100; background-size: 100% 3px, 3px 100%; pointer-events: none; opacity: 0.4;
         }
 
         .login-card { 
-            background: rgba(30, 41, 59, 0.8); padding: 45px; border-radius: 32px; 
-            border: 1px solid var(--border); width: 100%; max-width: 400px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-            text-align: center; backdrop-filter: blur(12px);
+            background: rgba(15, 23, 42, 0.8); padding: 50px 40px; border-radius: 40px; 
+            border: 1px solid var(--border); width: 100%; max-width: 420px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+            text-align: center; backdrop-filter: blur(20px);
             position: relative; z-index: 10;
         }
 
-        .logo-box { margin-bottom: 35px; }
+        .logo-box { margin-bottom: 40px; }
+        .logo-icon { 
+            font-size: 3.5rem; margin-bottom: 15px; filter: drop-shadow(0 0 15px var(--accent));
+            animation: pulse 3s infinite ease-in-out;
+        }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
         .logo-box h1 { 
-            font-family: 'JetBrains Mono'; font-size: 1.4rem; letter-spacing: 5px; 
-            margin: 15px 0 0 0; font-weight: 900;
+            font-family: 'JetBrains Mono'; font-size: 1.6rem; letter-spacing: 4px; 
+            margin: 0; font-weight: 900; text-transform: uppercase;
         }
 
+        /* NAVIGATION TABS */
         .tabs { 
-            display: flex; gap: 8px; margin-bottom: 30px; 
-            background: rgba(0,0,0,0.3); padding: 6px; border-radius: 16px; 
+            display: flex; gap: 8px; margin-bottom: 35px; 
+            background: rgba(0,0,0,0.4); padding: 6px; border-radius: 20px; border: 1px solid var(--border);
         }
         .tab { 
-            flex: 1; padding: 12px; border-radius: 12px; cursor: pointer; 
-            font-size: 0.75rem; font-weight: 800; transition: 0.3s; color: var(--muted);
-            letter-spacing: 1px;
+            flex: 1; padding: 14px; border-radius: 15px; cursor: pointer; 
+            font-size: 0.7rem; font-weight: 900; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase;
         }
-        .tab.active { background: var(--accent); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        .tab.active { background: var(--accent); color: white; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); }
 
-        .form-group { text-align: left; margin-bottom: 22px; }
+        /* FORMS */
+        .form-group { text-align: left; margin-bottom: 25px; position: relative; }
         label { 
-            display: block; font-size: 0.65rem; font-weight: 800; 
-            text-transform: uppercase; color: var(--muted); margin-bottom: 10px; 
-            letter-spacing: 1.5px; 
+            display: block; font-size: 0.65rem; font-weight: 900; 
+            text-transform: uppercase; color: var(--accent); margin-bottom: 12px; 
+            letter-spacing: 2px; opacity: 0.8;
         }
         
         input { 
-            width: 100%; padding: 16px; background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border); 
-            border-radius: 14px; color: white; font-family: 'JetBrains Mono'; box-sizing: border-box;
-            transition: 0.2s; font-size: 0.9rem;
+            width: 100%; padding: 18px; background: rgba(2, 6, 23, 0.8); border: 1px solid var(--border); 
+            border-radius: 16px; color: white; font-family: 'JetBrains Mono'; box-sizing: border-box;
+            transition: 0.3s; font-size: 0.95rem; letter-spacing: 1px;
         }
         input:focus { 
             outline: none; border-color: var(--accent); 
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); background: #0f172a;
+            box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.1); background: #000;
         }
 
+        /* ACTIONS */
         .btn-action { 
-            width: 100%; padding: 18px; background: var(--accent); color: white; 
-            border: none; border-radius: 14px; font-weight: 900; cursor: pointer; 
-            text-transform: uppercase; letter-spacing: 2px; margin-top: 10px;
-            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            font-size: 0.85rem;
+            width: 100%; padding: 20px; background: var(--accent); color: white; 
+            border: none; border-radius: 18px; font-weight: 900; cursor: pointer; 
+            text-transform: uppercase; letter-spacing: 3px; margin-top: 10px;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 0.8rem;
         }
-        .btn-action:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
-        .btn-action:active { transform: translateY(0); }
+        .btn-action:hover { transform: translateY(-4px); box-shadow: 0 15px 30px rgba(59, 130, 246, 0.3); background: #2563eb; }
+        .btn-action:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
         #error-msg { 
             background: rgba(239, 68, 68, 0.1); color: var(--danger); 
-            padding: 12px; border-radius: 10px; font-size: 0.8rem; 
-            margin-top: 20px; display: none; font-weight: 700; border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 15px; border-radius: 12px; font-size: 0.8rem; 
+            margin-top: 25px; display: none; font-weight: 700; border: 1px solid rgba(239, 68, 68, 0.2);
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
 
         /* Animation d'entrée */
-        .login-card { animation: slideIn 0.6s ease-out; }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .login-card { animation: entry 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
+        @keyframes entry {
+            from { opacity: 0; transform: scale(0.9) translateY(30px); filter: blur(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
         }
     </style>
 </head>
@@ -97,47 +115,46 @@
 
     <div class="login-card">
         <div class="logo-box">
-            <div style="font-size: 3rem;">🛰️</div>
-            <h1>VTC OPS <span style="color: var(--accent)">PORTAL</span></h1>
-            <p style="font-size: 0.6rem; color: var(--muted); letter-spacing: 1px; margin-top: 5px;">CENTRAL COMMAND v3.0</p>
+            <div class="logo-icon">🛰️</div>
+            <h1>VTC OPS <span style="color: var(--accent)">Portal</span></h1>
+            <p style="font-size: 0.65rem; color: var(--muted); letter-spacing: 2px; margin-top: 8px; font-weight: 700;">SECURE GATEWAY v3.5</p>
         </div>
 
         <div class="tabs">
-            <div id="tab-login" class="tab active" onclick="switchTab('login')">CONNEXION</div>
-            <div id="tab-register" class="tab" onclick="switchTab('register')">INSCRIPTION</div>
+            <div id="tab-login" class="tab active" onclick="switchTab('login')">Auth</div>
+            <div id="tab-register" class="tab" onclick="switchTab('register')">Enroll</div>
         </div>
 
         <div id="login-form">
             <div class="form-group">
-                <label>ID Chauffeur</label>
-                <input type="text" id="login-name" placeholder="Nom d'utilisateur" spellcheck="false">
+                <label>Driver ID</label>
+                <input type="text" id="login-name" placeholder="Nom de code" autocomplete="off">
             </div>
             <div class="form-group">
-                <label>Clé de Cryptage</label>
-                <input type="password" id="login-pass" placeholder="Mot de passe">
+                <label>Crypt-Key</label>
+                <input type="password" id="login-pass" placeholder="••••••••">
             </div>
-            <button class="btn-action" onclick="handleAuth('login')">Initialiser Session</button>
+            <button class="btn-action" onclick="handleAuth('login')">Initialiser Liaison</button>
         </div>
 
         <div id="register-form" style="display: none;">
             <div class="form-group">
-                <label>Identifiant Souhaité</label>
-                <input type="text" id="reg-name" placeholder="ex: Damian_Trucker" spellcheck="false">
+                <label>New Identity</label>
+                <input type="text" id="reg-name" placeholder="ex: Ghost_Rider" autocomplete="off">
             </div>
             <div class="form-group">
-                <label>Nouveau Code</label>
+                <label>Security Code</label>
                 <input type="password" id="reg-pass" placeholder="••••••••">
             </div>
-            <button class="btn-action" style="background: var(--success);" onclick="handleAuth('register')">Envoyer Candidature</button>
-            <p style="font-size: 0.65rem; color: var(--muted); margin-top: 15px; line-height: 1.4;">
-                🔒 Votre dossier sera audité par la direction avant l'octroi des accès.
+            <button class="btn-action" style="background: var(--success);" onclick="handleAuth('register')">Soumettre Dossier</button>
+            <p style="font-size: 0.65rem; color: var(--muted); margin-top: 20px; line-height: 1.6; font-weight: 600; padding: 0 10px;">
+                L'approbation du Haut Commandement est requise pour l'activation du compte.
             </p>
         </div>
 
         <div id="error-msg"></div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
 
@@ -155,34 +172,34 @@
             const btn = event.target;
             const originalText = btn.innerText;
             
-            // Petit effet de chargement
-            btn.innerText = "AUTHENTIFICATION...";
-            btn.disabled = true;
-
             const name = document.getElementById(type === 'login' ? 'login-name' : 'reg-name').value;
             const pass = document.getElementById(type === 'login' ? 'login-pass' : 'reg-pass').value;
 
             if(!name || !pass) {
-                showError("Veuillez remplir tous les champs.");
-                resetBtn(btn, originalText);
+                showError("PARAMÈTRES MANQUANTS");
                 return;
             }
 
+            btn.innerText = "CRYPTO-SYNC...";
+            btn.disabled = true;
+
             socket.emit(type === 'login' ? 'auth_login' : 'auth_register', { name, pass });
             
-            // Sécurité si pas de réponse rapide
-            setTimeout(() => resetBtn(btn, originalText), 2000);
-        }
-
-        function resetBtn(btn, text) {
-            btn.innerText = text;
-            btn.disabled = false;
+            // Timeout de sécurité
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }, 3000);
         }
 
         function showError(msg) {
             const errorEl = document.getElementById('error-msg');
             errorEl.innerText = msg;
             errorEl.style.display = 'block';
+            // Trigger animation
+            errorEl.style.animation = 'none';
+            errorEl.offsetHeight; 
+            errorEl.style.animation = null;
         }
 
         socket.on('auth_success', (userData) => {
@@ -195,7 +212,7 @@
         });
 
         socket.on('register_pending', () => {
-            alert("Requête transmise. Contactez un dispatcher pour validation.");
+            alert("CANDIDATURE ENREGISTRÉE. Attente de validation par un Dispatcher.");
             switchTab('login');
         });
     </script>

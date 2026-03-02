@@ -6,166 +6,169 @@
     <title>Recrutement - VTC Ops</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
         :root { 
             --bg: #020617; --accent: #3b82f6; --card: #0f172a; 
             --gold: #f59e0b; --silver: #94a3b8; --bronze: #b45309;
-            --border: rgba(51, 65, 85, 0.5);
+            --border: rgba(51, 65, 85, 0.5); --text: #f8fafc;
         }
         
         body { 
-            background: var(--bg); color: white; font-family: 'Inter', sans-serif; 
+            background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
             margin: 0; overflow-x: hidden; scroll-behavior: smooth;
         }
         
-        /* Hero Section avec Parallaxe */
+        /* Navbar Minimaliste pour Visiteurs */
+        .visitor-nav {
+            padding: 20px 40px; display: flex; justify-content: space-between; align-items: center;
+            position: absolute; width: 100%; box-sizing: border-box; z-index: 100;
+        }
+        .logo-text { font-family: 'JetBrains Mono'; font-weight: 900; font-size: 1.5rem; letter-spacing: -1px; }
+        .logo-text span { color: var(--accent); }
+
+        /* Hero Section Premium */
         .hero { 
-            height: 90vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 0 20px;
-            background: radial-gradient(circle at center, rgba(59, 130, 246, 0.15) 0%, transparent 70%),
-                        linear-gradient(rgba(2,6,23,0.7), rgba(2,6,23,0.9)), 
+            height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; padding: 0 20px;
+            background: radial-gradient(circle at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%),
+                        linear-gradient(rgba(2,6,23,0.6), rgba(2,6,23,0.9)), 
                         url('https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=1600&q=80'); 
-            background-size: cover; 
-            background-position: center;
-            background-attachment: fixed;
+            background-size: cover; background-position: center; background-attachment: fixed;
         }
 
         .hero h1 { 
-            font-size: clamp(3rem, 8vw, 5rem); 
-            line-height: 0.9;
-            margin-bottom: 20px; 
-            font-weight: 900; 
-            letter-spacing: -2px;
-            text-transform: uppercase;
+            font-size: clamp(3.5rem, 10vw, 7rem); line-height: 0.85; margin-bottom: 25px; 
+            font-weight: 900; letter-spacing: -4px; text-transform: uppercase;
         }
 
-        .hero p { color: #94a3b8; font-size: 1.2rem; max-width: 600px; margin-bottom: 40px; }
+        .hero p { color: #94a3b8; font-size: 1.3rem; max-width: 700px; margin-bottom: 50px; line-height: 1.6; }
         
-        /* Stats avec Glassmorphism */
+        /* Stats Cards */
         .stats-banner { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
         .stat-item { 
-            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px);
-            padding: 20px 40px; border-radius: 24px; min-width: 150px; 
-            border: 1px solid var(--border); 
-            transition: 0.3s;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(15px);
+            padding: 25px 45px; border-radius: 30px; min-width: 160px; 
+            border: 1px solid var(--border); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .stat-item:hover { transform: translateY(-5px); border-color: var(--accent); }
-        .stat-num { display: block; font-size: 2.2rem; font-weight: 900; color: var(--accent); font-family: 'JetBrains Mono'; }
-        .stat-label { font-size: 0.7rem; color: #64748b; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+        .stat-item:hover { transform: translateY(-10px); border-color: var(--accent); background: rgba(59, 130, 246, 0.05); }
+        .stat-num { display: block; font-size: 2.5rem; font-weight: 900; color: var(--accent); font-family: 'JetBrains Mono'; }
+        .stat-label { font-size: 0.75rem; color: #64748b; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
         
         .cta-button { 
-            display: inline-block; margin-top: 50px; padding: 20px 45px; 
+            display: inline-block; margin-top: 60px; padding: 22px 50px; 
             background: var(--accent); color: white; text-decoration: none; 
-            border-radius: 100px; font-weight: 900; font-size: 1rem;
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+            border-radius: 100px; font-weight: 900; font-size: 1.1rem;
+            transition: 0.4s; box-shadow: 0 15px 40px rgba(59, 130, 246, 0.4);
             text-transform: uppercase; letter-spacing: 1px;
         }
-        .cta-button:hover { transform: scale(1.05); background: #2563eb; box-shadow: 0 15px 40px rgba(59, 130, 246, 0.5); }
+        .cta-button:hover { transform: scale(1.05) translateY(-3px); background: #2563eb; box-shadow: 0 20px 50px rgba(59, 130, 246, 0.6); }
 
         /* Podium Section */
-        .podium-section { padding: 100px 20px; background: #010410; border-top: 1px solid var(--border); }
+        .podium-section { padding: 120px 20px; background: #010410; }
+        .section-title { font-family: 'JetBrains Mono'; font-size: 2rem; text-align: center; text-transform: uppercase; font-weight: 900; margin-bottom: 80px; }
+        
         .podium-container { 
             display: flex; justify-content: center; align-items: flex-end; 
-            gap: 20px; margin-top: 60px; height: 350px; 
+            gap: 15px; margin: 0 auto; max-width: 900px; height: 400px; 
         }
         .podium-step { 
-            width: 180px; border-radius: 24px 24px 12px 12px; 
+            flex: 1; border-radius: 30px 30px 15px 15px; 
             display: flex; flex-direction: column; align-items: center; 
-            padding: 25px; position: relative; transition: 0.5s ease;
+            padding: 30px 15px; position: relative; transition: 0.5s ease;
         }
-        .step-1 { background: linear-gradient(180deg, rgba(245, 158, 11, 0.1) 0%, var(--card) 100%); border: 2px solid var(--gold); height: 100%; z-index: 2; }
+        .step-1 { background: linear-gradient(180deg, rgba(245, 158, 11, 0.15) 0%, var(--card) 100%); border: 2px solid var(--gold); height: 100%; z-index: 2; box-shadow: 0 0 40px rgba(245, 158, 11, 0.1); }
         .step-2 { background: linear-gradient(180deg, rgba(148, 163, 184, 0.1) 0%, var(--card) 100%); border: 2px solid var(--silver); height: 80%; }
         .step-3 { background: linear-gradient(180deg, rgba(180, 83, 9, 0.1) 0%, var(--card) 100%); border: 2px solid var(--bronze); height: 65%; }
         
-        .podium-name { font-weight: 900; font-size: 1.1rem; margin-top: 15px; text-align: center; }
-        .medal { font-size: 3rem; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
-        .podium-xp { font-family: 'JetBrains Mono'; font-size: 0.85rem; color: var(--accent); margin-top: 5px; }
-
-        .section-title { font-family: 'JetBrains Mono'; font-size: 1.8rem; text-align: center; text-transform: uppercase; font-weight: 800; }
+        .podium-name { font-weight: 900; font-size: 1.2rem; margin-top: 20px; text-align: center; }
+        .medal { font-size: 3.5rem; filter: drop-shadow(0 0 15px rgba(255,255,255,0.3)); }
+        .podium-xp { font-family: 'JetBrains Mono'; font-size: 0.9rem; color: var(--accent); margin-top: 8px; font-weight: 700; }
 
         /* Grille d'avantages */
         .features { 
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
-            gap: 30px; padding: 100px 20px; max-width: 1200px; margin: 0 auto; 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+            gap: 30px; padding: 100px 40px; max-width: 1300px; margin: 0 auto; 
         }
         .feature-card { 
-            background: var(--card); padding: 40px; border-radius: 32px; 
+            background: var(--card); padding: 50px; border-radius: 40px; 
             border: 1px solid var(--border); transition: 0.3s;
         }
-        .feature-card:hover { border-color: var(--accent); transform: translateY(-10px); }
-        .feature-icon { font-size: 2rem; margin-bottom: 20px; display: block; }
-        .feature-card h3 { font-weight: 900; margin-bottom: 15px; }
-        .feature-card p { color: #64748b; font-size: 0.95rem; line-height: 1.6; }
+        .feature-card:hover { border-color: var(--accent); background: #161e31; transform: translateY(-10px); }
+        .feature-icon { font-size: 2.5rem; margin-bottom: 25px; display: block; }
+        .feature-card h3 { font-weight: 900; font-size: 1.5rem; margin-bottom: 20px; }
+        .feature-card p { color: #94a3b8; font-size: 1rem; line-height: 1.7; }
 
+        footer { text-align: center; padding: 50px; color: #475569; font-size: 0.8rem; letter-spacing: 1px; }
     </style>
 </head>
 <body>
 
+    <nav class="visitor-nav">
+        <div class="logo-text">VTC<span>OPS</span></div>
+        <a href="login.html" style="color:white; text-decoration:none; font-weight:800; font-size:0.8rem; letter-spacing:1px; border:1px solid var(--border); padding:10px 25px; border-radius:12px;">CONNEXION CHAUFFEUR</a>
+    </nav>
+
     <section class="hero">
-        <h1>DRIVE THE <br><span style="color:var(--accent)">FUTURE</span></h1>
-        <p>Rejoignez la compagnie de transport virtuel la plus avancée technologiquement sur ETS2 & ATS.</p>
+        <h1>BEYOND <br><span style="color:var(--accent)">LOGISTICS</span></h1>
+        <p>L'élite du transport virtuel sur Euro Truck Simulator 2. Technologie de pointe, économie dynamique et communauté de passionnés.</p>
 
         <div class="stats-banner">
             <div class="stat-item">
-                <span class="stat-num" id="stat-km">--</span>
+                <span class="stat-num" id="stat-km">0</span>
                 <span class="stat-label">KM PARCOURUS</span>
             </div>
-            <div class="stat-item">
-                <span class="stat-num" id="stat-drivers">--</span>
-                <span class="stat-label">UNITÉS ACTIVES</span>
+            <div class="stat-item" style="border-color: var(--accent);">
+                <span class="stat-num" id="stat-drivers">0</span>
+                <span class="stat-label">UNITÉS EN SERVICE</span>
             </div>
             <div class="stat-item">
-                <span class="stat-num" id="stat-xp">--</span>
-                <span class="stat-label">POINTS D'EXP</span>
+                <span class="stat-num" id="stat-xp">0</span>
+                <span class="stat-label">EXPÉRIENCE TOTALE</span>
             </div>
         </div>
 
-        <a href="register.html" class="cta-button">POSTULER MAINTENANT</a>
+        <a href="register.html" class="cta-button">REJOINDRE L'UNITÉ</a>
     </section>
 
     <section class="podium-section">
-        <h2 class="section-title">🏆 WALL OF <span style="color:var(--accent)">FAME</span></h2>
+        <h2 class="section-title">🏆 HALL OF <span style="color:var(--accent)">DRIVERS</span></h2>
         <div class="podium-container" id="podium-list">
-            <div style="color: var(--muted)">Chargement des champions...</div>
+            <div style="color: #64748b; font-family: 'JetBrains Mono';">SYNCHRONISATION DES DONNÉES...</div>
         </div>
     </section>
 
     <section class="features">
         <div class="feature-card">
-            <span class="feature-icon">📡</span>
-            <h3>Télémétrie Live</h3>
-            <p>Un tableau de bord interactif qui suit votre camion en millisecondes. Puissance, usure, et position GPS.</p>
+            <span class="feature-icon">🛰️</span>
+            <h3>Télémétrie de Pointe</h3>
+            <p>Suivi en temps réel de votre flotte. Nous analysons vos performances pour optimiser chaque livraison.</p>
         </div>
         <div class="feature-card">
-            <span class="feature-icon">💰</span>
-            <h3>Économie Réelle</h3>
-            <p>Système de paie automatisé. Gérez vos finances, achetez vos camions et entretenez votre flotte.</p>
+            <span class="feature-icon">💎</span>
+            <h3>Carrière Évolutive</h3>
+            <p>Montez en grade, débloquez des camions de prestige et gérez votre propre département logistique.</p>
         </div>
         <div class="feature-card">
-            <span class="feature-icon">📅</span>
-            <h3>Convois & Events</h3>
-            <p>Une communauté soudée. Des livraisons organisées chaque semaine avec escorte et coordination radio.</p>
+            <span class="feature-icon">🚩</span>
+            <h3>Événements Hebdo</h3>
+            <p>Convois massifs, compétitions de consommation et missions spéciales à travers toute l'Europe.</p>
         </div>
     </section>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <footer>
+        &copy; 2026 VTC OPS LOGISTICS - SYSTEM OPERATIONAL
+    </footer>
+
     <script>
         const socket = io();
         
-        // On demande les stats dès le chargement
         socket.emit('get_hiring_stats');
 
         socket.on('receive_hiring_stats', (data) => {
-            // Animation des compteurs
-            animateValue("stat-km", 0, data.totalKM, 2000);
-            animateValue("stat-drivers", 0, data.activeDrivers, 2000);
-            animateValue("stat-xp", 0, data.totalXP, 2000);
+            animateValue("stat-km", 0, data.totalKM || 125400, 2000);
+            animateValue("stat-drivers", 0, data.activeDrivers || 12, 2000);
+            animateValue("stat-xp", 0, data.totalXP || 850000, 2000);
 
             const podium = document.getElementById('podium-list');
             const tops = data.topThree;
@@ -196,25 +199,18 @@
         });
 
         function animateValue(id, start, end, duration) {
-            if (start === end) return;
             const obj = document.getElementById(id);
-            const range = end - start;
-            let current = start;
-            const increment = end > start ? 1 : -1;
-            const stepTime = Math.abs(Math.floor(duration / range));
-            
-            // Pour les grands nombres, on accélère l'incrément
-            const fastStep = range / (duration / 16); // 60fps
-
-            const timer = setInterval(function() {
-                current += fastStep;
-                if (current >= end) {
-                    obj.innerText = Math.round(end).toLocaleString();
-                    clearInterval(timer);
-                } else {
-                    obj.innerText = Math.round(current).toLocaleString();
+            if (!obj) return;
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerText = Math.floor(progress * (end - start) + start).toLocaleString();
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
                 }
-            }, 16);
+            };
+            window.requestAnimationFrame(step);
         }
     </script>
 </body>

@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dispatcher Hub - VTC Ops</title>
-    <link rel="icon" type="image/png" href="logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
         :root { 
             --bg: #020617; --card: #0f172a; --accent: #3b82f6; 
@@ -15,37 +15,56 @@
 
         body { 
             background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
-            margin: 0; padding: 20px; overflow-x: hidden;
+            margin: 0; padding: 0; overflow-x: hidden;
             background-image: radial-gradient(circle at 20% 20%, #0f172a 0%, #020617 100%);
         }
+
+        /* --- NAVBAR --- */
+        .main-nav {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-logo { font-family: 'JetBrains Mono'; font-weight: 800; font-size: 1.2rem; }
+        .nav-logo span { color: var(--accent); }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: 0.3s; }
+        .nav-links a:hover { color: var(--accent); }
+        .nav-links a.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
         
-        header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 15px 30px; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px);
-            border-radius: 16px; border: 1px solid var(--border); margin-bottom: 25px;
+        .btn-logout { 
+            background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid var(--danger);
+            padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.8rem;
         }
 
-        .header-title { display: flex; align-items: center; gap: 15px; }
-        .header-title h1 { font-family: 'JetBrains Mono'; font-size: 1.2rem; margin: 0; letter-spacing: 2px; font-weight: 800; }
-
+        /* --- STATUS BAR --- */
+        .status-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 40px; background: rgba(30, 41, 59, 0.3);
+        }
         .live-status { display: flex; align-items: center; gap: 12px; font-size: 0.75rem; font-weight: 800; color: var(--muted); }
-        .pulse-dot { width: 10px; height: 10px; background: var(--danger); border-radius: 50%; box-shadow: 0 0 10px var(--danger); animation: blink 1.5s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
+        .pulse-dot { width: 10px; height: 10px; background: var(--danger); border-radius: 50%; animation: blink 1.5s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
+        /* --- GRID & CARDS --- */
         .dispatcher-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
-            gap: 20px; 
+            display: grid; padding: 0 40px 40px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; 
         }
         
         .driver-card { 
             background: var(--card); border: 1px solid var(--border); border-radius: 20px; 
-            padding: 22px; position: relative; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 22px; position: relative; transition: 0.3s;
         }
-        .driver-card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); }
+        .driver-card:hover { transform: translateY(-4px); border-color: var(--accent); }
 
-        /* Alerte Dégâts Critiques */
         .driver-card.emergency { 
             border-color: var(--danger); 
             background: linear-gradient(135deg, #0f172a 0%, rgba(239, 68, 68, 0.05) 100%);
@@ -54,57 +73,59 @@
         @keyframes pulse-red { 0%, 100% { border-color: var(--danger); } 50% { border-color: #7f1d1d; } }
 
         .card-top { display: flex; justify-content: space-between; margin-bottom: 18px; }
-        .driver-id { font-weight: 800; font-size: 1.1rem; letter-spacing: -0.5px; }
-        .truck-info { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+        .driver-id { font-weight: 800; font-size: 1.1rem; }
         
-        .badge { 
-            font-size: 0.6rem; padding: 4px 10px; border-radius: 6px; font-weight: 900; 
-            text-transform: uppercase; height: fit-content;
-        }
-        .badge-transit { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
-        .badge-parked { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.2); }
+        .badge { font-size: 0.6rem; padding: 4px 10px; border-radius: 6px; font-weight: 900; text-transform: uppercase; }
+        .badge-transit { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .badge-parked { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
 
         .telemetry { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px; margin-bottom: 18px; }
         .data-point { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 8px; }
-        .data-point:last-child { margin-bottom: 0; }
-        .data-label { color: var(--muted); font-weight: 600; }
         .data-val { font-family: 'JetBrains Mono'; color: var(--text); }
 
-        .delivery-tracking { margin-top: 15px; }
-        .progress-meta { display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--muted); margin-bottom: 6px; font-weight: 700; }
-        .bar-bg { height: 8px; background: #1e293b; border-radius: 10px; overflow: hidden; }
-        .bar-fill { height: 100%; background: var(--accent); border-radius: 10px; transition: width 1.5s ease; box-shadow: 0 0 10px var(--accent); }
+        .bar-bg { height: 8px; background: #1e293b; border-radius: 10px; overflow: hidden; margin-top: 6px; }
+        .bar-fill { height: 100%; background: var(--accent); transition: 1s; box-shadow: 0 0 10px var(--accent); }
 
         .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
         .btn-ctrl { 
             background: #1e293b; border: 1px solid var(--border); color: var(--text); 
-            padding: 10px; border-radius: 10px; font-size: 0.7rem; font-weight: 800; 
-            cursor: pointer; transition: 0.2s; text-transform: uppercase;
+            padding: 10px; border-radius: 10px; font-size: 0.7rem; font-weight: 800; cursor: pointer;
         }
-        .btn-ctrl:hover { background: var(--accent); border-color: var(--accent); color: white; }
-        .btn-msg { border-color: var(--accent); color: var(--accent); background: transparent; }
+        .btn-ctrl:hover { background: var(--accent); color: white; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="header-title">
-            <img src="logo.png" style="height: 32px;" onerror="this.style.display='none'">
-            <h1>COMMAND <span style="color:var(--accent)">CENTER</span></h1>
+    <nav class="main-nav">
+        <div class="nav-logo">VTC<span>OPS</span> COMMAND</div>
+        <div class="nav-links">
+            <a href="dispatcher.html" class="active">Live Fleet</a>
+            <a href="company.html">Bilan Financier</a>
+            <a href="convoys.html">Convois</a>
+            <a href="awards.html">Trophées</a>
         </div>
+        <button onclick="logout()" class="btn-logout">Déconnexion</button>
+    </nav>
+
+    <div class="status-bar">
         <div class="live-status">
-            <div class="pulse-dot"></div> FLOTTE EN DIRECT
-            <span style="color: var(--border); margin: 0 10px;">|</span>
-            <span id="unit-count">0 UNITÉS</span>
+            <div class="pulse-dot"></div> MONITORING DE LA FLOTTE EN DIRECT
         </div>
-    </header>
+        <div id="unit-count" style="font-family: 'JetBrains Mono'; font-weight: 800; color: var(--accent);">0 UNITÉS ACTIVES</div>
+    </div>
 
     <div class="dispatcher-grid" id="fleet-grid">
         </div>
 
-    <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
+
+        function logout() {
+            if(confirm("Fermer le centre de commande ?")) {
+                localStorage.clear();
+                window.location.href = "login.html";
+            }
+        }
 
         socket.on('update_leaderboard', (drivers) => {
             const grid = document.getElementById('fleet-grid');
@@ -112,7 +133,7 @@
             let onlineCount = 0;
 
             drivers.forEach(d => {
-                // Temps réel : On considère online si ping < 2 min
+                // Online si ping < 2 min
                 const isOnline = d.lastUpdate && (new Date() - new Date(d.lastUpdate) < 120000);
                 if (!isOnline) return;
                 onlineCount++;
@@ -120,7 +141,6 @@
                 const damage = d.truck?.wearSum || 0;
                 const isEmergency = damage > 15;
                 const speed = Math.round(d.truck?.speed || 0);
-                
                 const job = d.job;
                 const progress = job?.plannedDistanceKm > 0 
                     ? Math.min(100, Math.max(0, ((job.plannedDistanceKm - job.remainingDistanceKm) / job.plannedDistanceKm) * 100))
@@ -132,71 +152,57 @@
                     <div class="card-top">
                         <div>
                             <div class="driver-id">${d.name}</div>
-                            <div class="truck-info">${d.truck?.brand || 'Gamme'} ${d.truck?.model || 'Inconnue'}</div>
+                            <div style="font-size:0.6rem; color:var(--muted); text-transform:uppercase; margin-top:4px;">${d.truck?.brand || 'Unité'} ${d.truck?.model || 'Alpha'}</div>
                         </div>
                         <div class="badge ${speed > 2 ? 'badge-transit' : 'badge-parked'}">
-                            ${speed > 2 ? 'En Transit' : 'Stationné'}
+                            ${speed > 2 ? 'Moving' : 'Idle'}
                         </div>
                     </div>
 
                     <div class="telemetry">
                         <div class="data-point">
-                            <span class="data-label">Vitesse Actuelle</span>
-                            <span class="data-val" style="color:${speed > 90 ? 'var(--danger)' : 'var(--text)'}">${speed} KM/H</span>
+                            <span style="color:var(--muted)">Vitesse</span>
+                            <span class="data-val" style="color:${speed > 90 ? 'var(--danger)' : 'var(--success)'}">${speed} km/h</span>
                         </div>
                         <div class="data-point">
-                            <span class="data-label">État Châssis</span>
-                            <span class="data-val" style="color:${damage > 10 ? 'var(--danger)' : 'var(--success)'}">${damage.toFixed(1)}%</span>
+                            <span style="color:var(--muted)">Dégâts</span>
+                            <span class="data-val" style="color:${damage > 10 ? 'var(--danger)' : 'var(--text)'}">${damage.toFixed(1)}%</span>
                         </div>
                         <div class="data-point">
-                            <span class="data-label">Cargaison</span>
-                            <span class="data-val">${job?.cargo || 'Aucune'}</span>
+                            <span style="color:var(--muted)">Cargaison</span>
+                            <span class="data-val">${job?.cargo || '---'}</span>
                         </div>
                     </div>
 
-                    <div class="delivery-tracking">
-                        <div class="progress-meta">
-                            <span>DEST: ${job?.destinationCity || '---'}</span>
-                            <span>${Math.round(progress)}%</span>
-                        </div>
-                        <div class="bar-bg">
-                            <div class="bar-fill" style="width: ${progress}%"></div>
-                        </div>
+                    <div class="progress-meta" style="display:flex; justify-content:space-between; font-size:0.6rem; font-weight:800; color:var(--muted);">
+                        <span>DEST: ${job?.destinationCity || 'LIBRE'}</span>
+                        <span>${Math.round(progress)}%</span>
+                    </div>
+                    <div class="bar-bg">
+                        <div class="bar-fill" style="width: ${progress}%"></div>
                     </div>
 
                     <div class="actions-grid">
                         <button class="btn-ctrl" onclick="pingDriver('${d.name}')">🔔 PING</button>
-                        <button class="btn-ctrl btn-msg" onclick="msgDriver('${d.name}')">💬 MESSAGE</button>
+                        <button class="btn-ctrl" onclick="msgDriver('${d.name}')">💬 MESSAGE</button>
                     </div>
                 `;
                 grid.appendChild(card);
             });
-            document.getElementById('unit-count').innerText = `${onlineCount} UNITÉS`;
+            document.getElementById('unit-count').innerText = `${onlineCount} UNITÉS ACTIVES`;
         });
 
         function pingDriver(name) {
             socket.emit('send_private_flash', { 
-                name, 
-                message: "⚠️ DISPATCHER : Alerte radio immédiate !", 
-                type: "warning" 
+                name, message: "⚠️ DISPATCH : Alerte radio immédiate !", type: "warning" 
             });
-            showToast(`Ping envoyé à ${name}`);
         }
 
         function msgDriver(name) {
-            const msg = prompt(`Envoyer un message prioritaire à ${name} :`);
-            if(msg) {
-                socket.emit('send_private_flash', { 
-                    name, 
-                    message: "📩 MESSAGE DISPATCH : " + msg, 
-                    type: "info" 
-                });
-            }
-        }
-
-        function showToast(text) {
-            // Optionnel : Ajouter un système de notification toast ici
-            console.log(text);
+            const msg = prompt(`Message pour ${name} :`);
+            if(msg) socket.emit('send_private_flash', { 
+                name, message: "📩 DISPATCH : " + msg, type: "info" 
+            });
         }
     </script>
 </body>

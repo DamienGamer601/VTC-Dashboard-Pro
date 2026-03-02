@@ -2,53 +2,102 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bilan Financier - VTC Ops</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-        :root { --bg: #020617; --card: #1e293b; --accent: #3b82f6; --success: #10b981; --danger: #ef4444; --border: #334155; }
-        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; margin: 0; padding-bottom: 50px; }
+        :root { 
+            --bg: #020617; --card: #1e293b; --accent: #3b82f6; 
+            --text: #f8fafc; --muted: #64748b; --border: rgba(51, 65, 85, 0.5);
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+        }
+
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+
+        /* --- STYLE NAVBAR --- */
+        .main-nav {
+            background: #0f172a;
+            border-bottom: 1px solid var(--border);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-logo { font-family: 'JetBrains Mono'; font-weight: 800; font-size: 1.2rem; }
+        .nav-logo span { color: var(--accent); }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: 0.3s; }
+        .nav-links a:hover { color: var(--accent); }
+        .nav-links a.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
         
+        .nav-right { display: flex; align-items: center; gap: 20px; }
+        .btn-logout { 
+            background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid var(--danger);
+            padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.8rem;
+        }
+        .btn-logout:hover { background: var(--danger); color: white; }
+
+        /* --- STYLE CONTENU --- */
         .container { padding: 40px; max-width: 1200px; margin: 0 auto; }
         .report-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px; }
-        .kpi-card { background: var(--card); padding: 30px; border-radius: 20px; text-align: center; border: 1px solid var(--border); }
+        .kpi-card { background: var(--card); padding: 30px; border-radius: 24px; text-align: center; border: 1px solid var(--border); }
         .kpi-val { font-size: 2rem; font-weight: 900; display: block; margin-top: 10px; }
         
         .profit-positive { color: var(--success); text-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
         .profit-negative { color: var(--danger); }
 
-        /* Nouveaux styles pour les listes détaillées */
         .details-section { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 40px; }
-        .detail-card { background: var(--card); border-radius: 20px; border: 1px solid var(--border); padding: 20px; }
-        .detail-title { font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--accent); margin-bottom: 20px; display: block; }
+        .detail-card { background: var(--card); border-radius: 24px; border: 1px solid var(--border); padding: 25px; }
+        .detail-title { font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--accent); margin-bottom: 20px; display: block; font-weight: 800; }
         
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         td { padding: 12px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .label-muted { color: #94a3b8; font-size: 0.75rem; }
+
+        @media (max-width: 900px) { .report-grid, .details-section { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
+    <nav class="main-nav">
+        <div class="nav-logo">VTC<span>OPS</span></div>
+        <div class="nav-links">
+            <a href="index.html">Tableau de bord</a>
+            <a href="hiring.html">Recrutement</a>
+            <a href="company.html" class="active">Bilan Financier</a>
+            <a href="awards.html">Trophées</a>
+        </div>
+        <div class="nav-right">
+            <button onclick="logout()" class="btn-logout">Déconnexion</button>
+        </div>
+    </nav>
+
     <div class="container">
         <h1 style="font-family: 'JetBrains Mono'; margin-top: 0;">📊 BILAN FINANCIER <span id="month-name" style="color:var(--accent)">MENSUEL</span></h1>
+        <p style="color: var(--muted);">Analyse de performance de la compagnie et rentabilité des chauffeurs.</p>
 
         <div class="report-grid">
             <div class="kpi-card">
-                <span style="color: #94a3b8; font-size: 0.8rem;">REVENUS BRUTS</span>
-                <span class="kpi-val" id="rev-val">0 €</span>
+                <span style="color: #94a3b8; font-size: 0.8rem; font-weight: 800;">REVENUS BRUTS</span>
+                <span class="kpi-val" id="rev-val" style="color: var(--success);">0 €</span>
             </div>
             <div class="kpi-card">
-                <span style="color: #94a3b8; font-size: 0.8rem;">DÉPENSES & PRIMES</span>
+                <span style="color: #94a3b8; font-size: 0.8rem; font-weight: 800;">DÉPENSES & PRIMES</span>
                 <span class="kpi-val" style="color: var(--danger);" id="exp-val">0 €</span>
             </div>
             <div class="kpi-card" style="background: rgba(59, 130, 246, 0.05); border-color: var(--accent);">
-                <span style="color: #94a3b8; font-size: 0.8rem;">BÉNÉFICE NET</span>
+                <span style="color: #94a3b8; font-size: 0.8rem; font-weight: 800;">BÉNÉFICE NET</span>
                 <span class="kpi-val" id="net-val">0 €</span>
             </div>
         </div>
 
         <div class="details-section">
             <div class="detail-card">
-                <span class="detail-title">📑 DERNIERS FLUX FINANCIERS</span>
+                <span class="detail-title">📑 DERNIÈRES TRANSACTIONS</span>
                 <table id="last-tx-table">
                     </table>
             </div>
@@ -61,13 +110,20 @@
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="nav.js"></script>
     <script>
         const socket = io();
+        
+        function logout() {
+            if(confirm("Déconnexion de la session VTC Ops ?")) {
+                localStorage.clear();
+                window.location.href = "login.html";
+            }
+        }
+
         const monthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
         document.getElementById('month-name').innerText = monthNames[new Date().getMonth()].toUpperCase();
 
+        // Demander les données au serveur
         socket.emit('get_company_report');
 
         socket.on('receive_company_report', (data) => {
@@ -79,27 +135,27 @@
             netEl.innerText = data.netProfit.toLocaleString() + " €";
             netEl.className = "kpi-val " + (data.netProfit >= 0 ? "profit-positive" : "profit-negative");
 
-            // Remplissage dernières transactions (Globales)
+            // Remplissage dernières transactions
             const txTable = document.getElementById('last-tx-table');
-            txTable.innerHTML = data.recentTransactions.map(tx => `
+            txTable.innerHTML = data.recentTransactions.length ? data.recentTransactions.map(tx => `
                 <tr>
                     <td><span class="label-muted">${new Date(tx.date).toLocaleDateString()}</span></td>
                     <td style="font-weight:600;">${tx.reason}</td>
-                    <td style="text-align:right; color:${tx.type === 'REVENUE' ? 'var(--success)' : 'var(--danger)'}">
+                    <td style="text-align:right; font-weight:800; color:${tx.type === 'REVENUE' ? 'var(--success)' : 'var(--danger)'}">
                         ${tx.type === 'REVENUE' ? '+' : ''}${tx.amount.toLocaleString()} €
                     </td>
                 </tr>
-            `).join('');
+            `).join('') : '<tr><td colspan="3" style="text-align:center; color:var(--muted);">Aucune transaction ce mois-ci</td></tr>';
 
             // Remplissage Top Earners
             const earnersTable = document.getElementById('top-earners-table');
-            earnersTable.innerHTML = data.topEarners.map((driver, index) => `
+            earnersTable.innerHTML = data.topEarners.length ? data.topEarners.map((driver, index) => `
                 <tr>
                     <td style="width: 30px; font-weight:800; color:var(--accent)">#${index + 1}</td>
                     <td style="font-weight:700;">${driver.name}</td>
-                    <td style="text-align:right; font-weight:700;">${driver.totalGenerated.toLocaleString()} €</td>
+                    <td style="text-align:right; font-weight:800;">${driver.totalGenerated.toLocaleString()} €</td>
                 </tr>
-            `).join('');
+            `).join('') : '<tr><td colspan="3" style="text-align:center; color:var(--muted);">En attente de données...</td></tr>';
         });
     </script>
 </body>

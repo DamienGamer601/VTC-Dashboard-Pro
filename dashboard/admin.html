@@ -15,10 +15,41 @@
 
         body { 
             background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
-            margin: 0; padding: 30px;
-            display: none; /* Masqué tant que le code n'est pas bon */
+            margin: 0; padding: 0;
+            display: none; /* Masqué par sécurité */
         }
 
+        /* --- STYLE NAVBAR --- */
+        .main-nav {
+            background: #0f172a;
+            border-bottom: 1px solid var(--border);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-logo { font-family: 'JetBrains Mono'; font-weight: 800; font-size: 1.2rem; }
+        .nav-logo span { color: var(--accent); }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: 0.3s; }
+        .nav-links a:hover { color: var(--accent); }
+        .nav-links a.active { color: var(--warning); font-weight: 800; }
+        
+        .nav-right { display: flex; align-items: center; gap: 20px; }
+        .nav-status { font-size: 0.8rem; color: var(--success); display: flex; align-items: center; gap: 8px; font-weight: 700; }
+        .status-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success); }
+        
+        .btn-logout { 
+            background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid var(--danger);
+            padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.8rem;
+        }
+        .btn-logout:hover { background: var(--danger); color: white; }
+
+        /* --- STYLE CONTENU --- */
+        .container { padding: 30px; }
         #admin-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #020617; z-index: 9999; display: flex;
@@ -26,7 +57,7 @@
             color: var(--accent); font-size: 1.2rem;
         }
 
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+        .header-title { margin-bottom: 30px; }
         .grid { display: grid; grid-template-columns: 1fr 350px; gap: 30px; }
         .panel { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 25px; }
         
@@ -56,45 +87,58 @@
 
     <div id="admin-overlay">🔒 VERROUILLÉ - VÉRIFICATION DU CODE...</div>
 
-    <div class="header">
-        <div>
+    <nav class="main-nav">
+        <div class="nav-logo">VTC<span>OPS</span></div>
+        <div class="nav-links">
+            <a href="index.html">Tableau de bord</a>
+            <a href="hiring.html">Recrutement</a>
+            <a href="admin.html" class="active">Dispatch Center</a>
+        </div>
+        <div class="nav-right">
+            <div class="nav-status">
+                <span class="status-dot"></span> Serveur Live
+            </div>
+            <button onclick="logout()" class="btn-logout">Déconnexion</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header-title">
             <h1 style="font-family:'JetBrains Mono'; margin:0;">DISPATCH <span style="color:var(--accent)">CENTER</span></h1>
-            <p style="color:var(--muted); font-size:0.9rem;">Interface d'Administration Sécurisée</p>
-        </div>
-        <div class="badge badge-online">SYSTÈME LIVE</div>
-    </div>
-
-    <div class="grid">
-        <div class="main-content">
-            <div class="panel" style="margin-bottom:30px; border-left: 4px solid var(--warning);">
-                <div style="color:var(--muted); font-size:0.8rem; margin-bottom:15px; font-weight:800;">📩 CANDIDATURES</div>
-                <table id="table-pending">
-                    <thead><tr><th>Candidat</th><th>Camion</th><th>Action</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-
-            <div class="panel">
-                <div style="color:var(--muted); font-size:0.8rem; margin-bottom:15px; font-weight:800;">🚛 FLOTTE ACTIVE</div>
-                <table id="table-drivers">
-                    <thead><tr><th>Chauffeur</th><th>État</th><th>Localisation</th><th>Solde</th><th>Actions</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
+            <p style="color:var(--muted); font-size:0.9rem;">Interface de Gestion de Flotte</p>
         </div>
 
-        <div class="sidebar">
-            <div class="panel flash-box">
-                <div style="color:var(--muted); font-size:0.8rem; font-weight:800;">📡 TRANSMISSION FLASH</div>
-                <input type="text" id="flash-target" placeholder="Nom du chauffeur">
-                <textarea id="flash-msg" rows="4" placeholder="Message urgent..."></textarea>
-                <button class="btn-action" style="padding:12px;" onclick="sendFlash()">ENVOYER L'ORDRE</button>
+        <div class="grid">
+            <div class="main-content">
+                <div class="panel" style="margin-bottom:30px; border-left: 4px solid var(--warning);">
+                    <div style="color:var(--muted); font-size:0.8rem; margin-bottom:15px; font-weight:800;">📩 CANDIDATURES</div>
+                    <table id="table-pending">
+                        <thead><tr><th>Candidat</th><th>Camion</th><th>Action</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="panel">
+                    <div style="color:var(--muted); font-size:0.8rem; margin-bottom:15px; font-weight:800;">🚛 FLOTTE ACTIVE</div>
+                    <table id="table-drivers">
+                        <thead><tr><th>Chauffeur</th><th>État</th><th>Localisation</th><th>Solde</th><th>Actions</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="panel flash-box">
+                    <div style="color:var(--muted); font-size:0.8rem; font-weight:800;">📡 TRANSMISSION FLASH</div>
+                    <input type="text" id="flash-target" placeholder="Nom du chauffeur">
+                    <textarea id="flash-msg" rows="4" placeholder="Message urgent..."></textarea>
+                    <button class="btn-action" style="padding:12px;" onclick="sendFlash()">ENVOYER L'ORDRE</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Connexion auto-adaptative (marche en local et sur Render)
         const socket = io(); 
 
         function checkLock() {
@@ -106,8 +150,15 @@
             }
         }
 
+        function logout() {
+            if(confirm("Se déconnecter de la session Dispatch ?")) {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = "login.html";
+            }
+        }
+
         socket.on('admin_lock_success', () => {
-            console.log("Accès Admin : OK");
             document.getElementById('admin-overlay').style.display = "none";
             document.body.style.display = "block";
             socket.emit('get_admin_data');
@@ -118,22 +169,17 @@
             window.location.href = "index.html";
         });
 
-        // Lancer la sécurité au chargement
         window.onload = checkLock;
 
         socket.on('receive_admin_data', (data) => {
-            console.log("Données reçues :", data);
-            
-            // Gestion des Candidatures
             const pendingBody = document.querySelector('#table-pending tbody');
             if (pendingBody) {
-                pendingBody.innerHTML = data.pending.length ? '' : '<tr><td colspan="3" style="text-align:center;">Aucun dossier</td></tr>';
+                pendingBody.innerHTML = data.pending.length ? '' : '<tr><td colspan="3" style="text-align:center;">Aucun dossier en attente</td></tr>';
                 data.pending.forEach(d => {
                     pendingBody.innerHTML += `<tr><td style="font-weight:800;">${d.name}</td><td>${d.truck?.favorite || 'N/A'}</td><td><button class="btn-action" onclick="validate('${d.name}')">ACCEPTER</button></td></tr>`;
                 });
             }
 
-            // Gestion des Chauffeurs
             const driversBody = document.querySelector('#table-drivers tbody');
             if (driversBody) {
                 driversBody.innerHTML = '';
@@ -155,20 +201,18 @@
         });
 
         function validate(name) { socket.emit('admin_validate_driver', name); setTimeout(() => socket.emit('get_admin_data'), 500); }
-        function banDriver(name) { if(confirm(`Ban ${name} ?`)) { socket.emit('admin_ban_driver', { name, reason: 'Admin Action' }); setTimeout(() => socket.emit('get_admin_data'), 500); } }
+        function banDriver(name) { if(confirm(`Bannir définitivement ${name} ?`)) { socket.emit('admin_ban_driver', { name, reason: 'Action Dispatch' }); setTimeout(() => socket.emit('get_admin_data'), 500); } }
         function prepareFlash(name) { document.getElementById('flash-target').value = name; document.getElementById('flash-msg').focus(); }
         function sendFlash() { 
             const t = document.getElementById('flash-target').value;
             const m = document.getElementById('flash-msg').value;
-            if(!t || !m) return alert("Champs vides");
+            if(!t || !m) return alert("Précisez un destinataire et un message.");
             socket.emit('send_private_flash', { name: t, message: m, type: 'warning' }); 
-            alert("Envoyé"); 
+            alert("Transmission envoyée !"); 
             document.getElementById('flash-msg').value = "";
         }
 
-        setInterval(() => { 
-            if(document.body.style.display === "block") socket.emit('get_admin_data'); 
-        }, 15000);
+        setInterval(() => { if(document.body.style.display === "block") socket.emit('get_admin_data'); }, 15000);
     </script>
 </body>
 </html>

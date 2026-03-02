@@ -2,20 +2,53 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Garage de la Flotte - VTC Ops</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-        :root { --bg: #020617; --card: #1e293b; --accent: #3b82f6; --text: #f8fafc; --border: #334155; }
+        :root { 
+            --bg: #020617; --card: #1e293b; --accent: #3b82f6; 
+            --text: #f8fafc; --muted: #64748b; --border: rgba(51, 65, 85, 0.5);
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+        }
         
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding-bottom: 50px; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+
+        /* --- STYLE NAVBAR --- */
+        .main-nav {
+            background: #0f172a;
+            border-bottom: 1px solid var(--border);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-logo { font-family: 'JetBrains Mono'; font-weight: 800; font-size: 1.2rem; }
+        .nav-logo span { color: var(--accent); }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: 0.3s; }
+        .nav-links a:hover { color: var(--accent); }
+        .nav-links a.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+        
+        .nav-right { display: flex; align-items: center; gap: 20px; }
+        .btn-logout { 
+            background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid var(--danger);
+            padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.8rem;
+        }
+
+        /* --- STYLE CONTENU --- */
         .container { padding: 40px; max-width: 1400px; margin: 0 auto; }
         
-        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 20px; }
         
         /* Filtres */
         .filter-group { display: flex; gap: 10px; background: #0f172a; padding: 5px; border-radius: 12px; border: 1px solid var(--border); }
         .filter-btn { 
-            background: transparent; border: none; color: #94a3b8; padding: 8px 15px; 
+            background: transparent; border: none; color: #94a3b8; padding: 8px 18px; 
             border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.2s;
         }
         .filter-btn.active { background: var(--accent); color: white; }
@@ -23,49 +56,59 @@
         .garage-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
         
         .truck-card { 
-            background: var(--card); border-radius: 20px; overflow: hidden; 
-            border: 1px solid var(--border); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--card); border-radius: 24px; overflow: hidden; 
+            border: 1px solid var(--border); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
-        .truck-card:hover { transform: translateY(-8px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .truck-card:hover { transform: translateY(-8px); border-color: var(--accent); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
         
-        .truck-img { width: 100%; height: 200px; object-fit: cover; background: #0f172a; border-bottom: 1px solid var(--border); }
+        .truck-img { width: 100%; height: 200px; object-fit: cover; background: #0c1120; border-bottom: 1px solid var(--border); }
         
         .truck-info { padding: 25px; }
-        .truck-brand { color: var(--accent); font-family: 'JetBrains Mono'; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
-        .truck-model { font-size: 1.3rem; font-weight: 900; margin: 5px 0 15px 0; }
+        .truck-brand { color: var(--accent); font-family: 'JetBrains Mono'; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; }
+        .truck-model { font-size: 1.4rem; font-weight: 900; margin: 5px 0 15px 0; letter-spacing: -0.5px; }
         
         .specs { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
-        .spec-item { display: flex; flex-direction: column; }
-        .spec-label { font-size: 0.65rem; color: #64748b; text-transform: uppercase; }
-        .spec-val { font-size: 0.9rem; font-weight: 700; margin-top: 3px; }
+        .spec-label { font-size: 0.65rem; color: #64748b; text-transform: uppercase; font-weight: 700; }
+        .spec-val { font-size: 0.9rem; font-weight: 800; margin-top: 3px; display: block; }
         
         .status-badge { 
             position: absolute; top: 15px; right: 15px; padding: 6px 14px; border-radius: 50px; 
-            font-size: 0.65rem; font-weight: 900; text-transform: uppercase; backdrop-filter: blur(10px);
+            font-size: 0.65rem; font-weight: 900; text-transform: uppercase; backdrop-filter: blur(8px);
+            z-index: 10;
         }
         .status-online { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
         .status-busy { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
 
-        /* Barre d'état moteur */
-        .health-bar-container { height: 4px; background: #0f172a; border-radius: 2px; margin-top: 20px; overflow: hidden; }
-        .health-bar { height: 100%; background: var(--accent); transition: width 0.5s; }
+        .health-bar-container { height: 6px; background: #0f172a; border-radius: 10px; margin-top: 20px; overflow: hidden; }
+        .health-bar { height: 100%; background: var(--accent); transition: width 0.8s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
     </style>
 </head>
 <body>
 
-    <script src="nav.js"></script>
+    <nav class="main-nav">
+        <div class="nav-logo">VTC<span>OPS</span></div>
+        <div class="nav-links">
+            <a href="index.html">Tableau de bord</a>
+            <a href="garage.html" class="active">Garage</a>
+            <a href="convoys.html">Convois</a>
+            <a href="company.html">Bilan</a>
+        </div>
+        <div class="nav-right">
+            <button onclick="logout()" class="btn-logout">Déconnexion</button>
+        </div>
+    </nav>
 
     <div class="container">
         <div class="header-flex">
             <div>
-                <h1 style="font-family: 'JetBrains Mono'; margin: 0;">🚛 GARAGE <span style="color:var(--accent)">OFFICIEL</span></h1>
-                <p style="color: #94a3b8; margin: 5px 0 0 0;">État de la flotte et assignations en temps réel.</p>
+                <h1 style="font-family: 'JetBrains Mono'; margin: 0; font-size: 1.8rem;">🚛 GARAGE <span style="color:var(--accent)">FLOTTE</span></h1>
+                <p style="color: #94a3b8; margin: 5px 0 0 0;">Gestion technique et assignations des véhicules.</p>
             </div>
 
             <div class="filter-group">
                 <button class="filter-btn active" onclick="filterTrucks('all', this)">Tous</button>
-                <button class="filter-btn" onclick="filterTrucks('Disponible', this)">Libres</button>
+                <button class="filter-btn" onclick="filterTrucks('Disponible', this)">Disponibles</button>
                 <button class="filter-btn" onclick="filterTrucks('En Mission', this)">En Mission</button>
             </div>
         </div>
@@ -74,10 +117,16 @@
             </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
         let allTrucks = [];
+
+        function logout() {
+            if(confirm("Voulez-vous quitter le système de gestion ?")) {
+                localStorage.clear();
+                window.location.href = "login.html";
+            }
+        }
 
         socket.emit('get_trucks');
 
@@ -89,49 +138,50 @@
         function renderTrucks(list) {
             const container = document.getElementById('truck-list');
             if(list.length === 0) {
-                container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #64748b;">Aucun camion ne correspond à ce critère.</p>`;
+                container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; padding: 60px; color: #64748b; background: var(--card); border-radius: 20px; border: 1px dashed var(--border);">Aucun véhicule ne correspond à cette catégorie.</p>`;
                 return;
             }
 
             container.innerHTML = list.map(t => {
-                const health = t.condition || 100; // Si tu as un champ condition dans ta DB
+                const health = t.condition || 100;
+                const statusClass = t.status === 'Disponible' ? 'status-online' : 'status-busy';
+                
                 return `
                 <div class="truck-card">
-                    <div class="status-badge ${t.status === 'Disponible' ? 'status-online' : 'status-busy'}">
+                    <div class="status-badge ${statusClass}">
                         ${t.status}
                     </div>
-                    <img src="${t.image || 'https://images.unsplash.com/photo-1586191582151-f73872dfd183?auto=format&fit=crop&q=80&w=400'}" class="truck-img">
+                    <img src="${t.image || 'https://images.unsplash.com/photo-1586191582151-f73872dfd183?q=80&w=400'}" class="truck-img" alt="Camion">
                     <div class="truck-info">
-                        <div class="truck-brand">${t.brand}</div>
-                        <div class="truck-model">${t.model}</div>
+                        <div class="truck-brand">${t.brand || 'VTC TRUCK'}</div>
+                        <div class="truck-model">${t.model || 'Alpha Edition'}</div>
                         
                         <div class="specs">
                             <div class="spec-item">
                                 <span class="spec-label">Puissance</span>
-                                <span class="spec-val">⚡ ${t.power} CV</span>
+                                <span class="spec-val">⚡ ${t.power || '---'} CV</span>
                             </div>
                             <div class="spec-item">
-                                <span class="spec-label">Assigné à</span>
-                                <span class="spec-val" style="color: ${t.assignedTo === 'Libre' ? 'var(--text)' : 'var(--accent)'}">
-                                    👤 ${t.assignedTo}
+                                <span class="spec-label">Chauffeur</span>
+                                <span class="spec-val" style="color: ${t.assignedTo === 'Libre' ? 'var(--muted)' : 'var(--accent)'}">
+                                    👤 ${t.assignedTo || 'Non assigné'}
                                 </span>
                             </div>
                         </div>
 
                         <div class="health-bar-container">
-                            <div class="health-bar" style="width: ${health}%; background: ${health < 30 ? 'var(--danger, #ef4444)' : 'var(--accent)'}"></div>
+                            <div class="health-bar" style="width: ${health}%; background: ${health < 40 ? 'var(--danger)' : health < 80 ? 'var(--warning)' : 'var(--success)'}"></div>
                         </div>
-                        <div style="display:flex; justify-content:space-between; margin-top:5px;">
-                             <span style="font-size:0.6rem; color:#64748b;">ÉTAT GÉNÉRAL</span>
-                             <span style="font-size:0.6rem; font-weight:bold;">${health}%</span>
+                        <div style="display:flex; justify-content:space-between; margin-top:8px;">
+                             <span style="font-size:0.65rem; color:#64748b; font-weight:800;">ÉTAT MÉCANIQUE</span>
+                             <span style="font-size:0.65rem; font-weight:900; color:${health < 40 ? 'var(--danger)' : 'var(--text)'}">${health}%</span>
                         </div>
                     </div>
                 </div>
-            `}).join('');
+            `;}).join('');
         }
 
         function filterTrucks(status, btn) {
-            // Update UI boutons
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
