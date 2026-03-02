@@ -3,20 +3,20 @@ const http = require('http');
 const { Server } = require('socket.io');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path'); // Nécessaire pour les chemins de fichiers
+const path = require('path');
 
 const app = express();
 app.use(cors());
 
-// --- GESTION DES FICHIERS STATIQUES ---
-// Cette ligne dit à Express de servir tes pages HTML situées dans le dossier 'dashboard'
+// --- CONFIGURATION DES FICHIERS STATIQUES ---
+// Cette ligne est CRUCIALE : elle permet à Render de trouver tes pages HTML
+// On remonte d'un dossier (..) pour sortir de 'server' et on entre dans 'dashboard'
 app.use(express.static(path.join(__dirname, '../dashboard')));
 
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
 // --- CONFIGURATION MONGODB ---
-// On utilise la variable d'environnement définie sur Render pour la sécurité
 const MONGO_URI = process.env.MONGO_URI; 
 
 mongoose.connect(MONGO_URI)
@@ -42,8 +42,7 @@ const DeliverySchema = new mongoose.Schema({
 });
 const Delivery = mongoose.model('Delivery', DeliverySchema);
 
-// --- ROUTE PRINCIPALE ---
-// Quand tu arrives sur ton-site.onrender.com, on affiche le login
+// --- ROUTE PAR DÉFAUT ---
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../dashboard/login.html'));
 });
@@ -62,7 +61,7 @@ io.on('connection', (socket) => {
             await driver.save();
         }
 
-        // --- CALCULS ÉCONOMIQUES (Carburant, Dégâts, Distance) ---
+        // Calculs économiques
         if (socket.lastFuel && data.truck.fuel < socket.lastFuel) {
             let cost = (socket.lastFuel - data.truck.fuel) * 1.50;
             driver.wallet -= cost;
@@ -84,39 +83,63 @@ io.on('connection', (socket) => {
         }
         socket.lastKM = data.truck.odometer;
 
-        // Fin de mission
+        // Détection de livraison
         if (socket.inJob && !data.job.cargoLoaded) {
             const reward = 2000;
             driver.wallet += reward;
-            const newDel = new Delivery({ driverName: driver.name, destination: data.job.destinationCity, cargo: data.job.cargo, reward: reward });
+            const newDel = new Delivery({
+                driverName: driver.name,
+                destination: data.job.destinationCity,
+                cargo: data.job.cargo,
+                reward: reward
+            });
             await newDel.save();
             io.emit('receive_flash', `✅ ${driver.name} a livré ${data.job.cargo} ! (+${reward}€)`);
+            
+            const history = await Delivery.find().sort({ date: -1 }).limit(10);
+            io.emit('update_history', history);
         }
         socket.inJob = data.job.cargoLoaded;
 
         await driver.save();
 
-        socket.emit('update_dashboard', { truck: data.truck, job: data.job, wallet: driver.wallet, totalKM: Math.round(driver.distance) });
+        socket.emit('update_dashboard', {
+            truck: data.truck,
+            job: data.job,
+            wallet: driver.wallet,
+            totalKM: Math.round(driver.distance)
+        });
+
         const allDrivers = await Driver.find();
         io.emit('update_leaderboard', allDrivers);
-        const history = await Delivery.find().sort({ date: -1 }).limit(10);
-        io.emit('update_history', history);
     });
 
     // --- COMMANDES ADMIN ---
     const ADMIN_SECRET = "DAMIAN_VTC_2024";
+
     socket.on('admin_flash', (msg) => io.emit('receive_flash', msg));
+
     socket.on('admin_give_bonus', async (data) => {
         if (data.secret === ADMIN_SECRET) {
             let d = await Driver.findOne({ name: data.driverName });
-            if (d) { d.wallet += parseFloat(data.amount); await d.save(); }
+            if (d) {
+                d.wallet += parseFloat(data.amount);
+                await d.save();
+                io.emit('receive_flash', `💰 FINANCE : ${data.driverName} a reçu ${data.amount}€ !`);
+            }
         }
     });
 
-    socket.on('disconnect', () => console.log("👋 Déconnexion"));
+    socket.on('admin_repair_truck', (data) => {
+        if (data.secret === ADMIN_SECRET) {
+            io.emit('remote_repair', { targetDriver: data.driverName });
+        }
+    });
+
+    socket.on('disconnect', () => console.log("👋 Déconnexion d'un utilisateur"));
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`🚀 Serveur en ligne sur le port ${PORT}`);
+    console.log(`🚀 Serveur actif sur le port ${PORT}`);
 });
