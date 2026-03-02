@@ -1,80 +1,205 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTC Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <title>VTC Dashboard - Système Professionnel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #080a0f; --card: #11141d; --accent: #00d1ff; --text: #e6edf3; }
-        body { background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; margin: 0; }
-        .main { display: grid; grid-template-columns: 280px 1fr 280px; gap: 20px; padding: 20px; }
-        .widget { background: var(--card); border-radius: 12px; padding: 15px; border: 1px solid #252a37; text-align: center; }
-        #radar { position: relative; height: 200px; background: #05070a; border: 1px solid var(--accent); border-radius: 10px; overflow: hidden; }
-        #truck-point { position: absolute; width: 10px; height: 10px; background: var(--accent); border-radius: 50%; transform: translate(-50%, -50%); transition: 0.5s; }
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        :root {
+            --bg: #080a0f;
+            --card: #11141d;
+            --accent: #00d1ff;
+            --text: #e6edf3;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* Animation de fondu */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Écran de Connexion */
+        #login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, #11141d 0%, #080a0f 100%);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--accent);
+            padding: 40px;
+            border-radius: 15px;
+            background: rgba(17, 20, 29, 0.95);
+            box-shadow: 0 0 30px rgba(0, 209, 255, 0.1);
+            animation: fadeIn 1.2s ease-out;
+        }
+
+        /* Interface Principale */
+        .main-container {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        .widget {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #252a37;
+            text-align: center;
+        }
+
+        .speed-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 5rem;
+            color: var(--accent);
+            text-shadow: 0 0 15px rgba(0, 209, 255, 0.5);
+        }
+
+        #radar {
+            position: relative;
+            height: 250px;
+            background: #05070a;
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        #truck-point {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px var(--accent);
+            transition: 0.5s linear;
+        }
     </style>
 </head>
 <body>
-    <div id="login-overlay" style="background: radial-gradient(circle, #11141d 0%, #080a0f 100%);">
-        <div class="login-box" style="display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid var(--accent); box-shadow: 0 0 20px rgba(0, 209, 255, 0.2);">
-            
+
+    <div id="login-overlay">
+        <div class="login-box">
             <img src="logo.png" alt="Logo VTC" style="width: 220px; height: auto; margin-bottom: 25px; filter: drop-shadow(0 0 10px var(--accent));">
             
-            <h1 style="font-family:'Orbitron'; color:var(--accent); margin: 0 0 20px 0; font-size: 1.8rem; letter-spacing: 2px;">ACCÈS CHAUFFEUR</h1>
+            <h1 style="font-family:'Orbitron'; color:var(--accent); margin: 0 0 20px 0; font-size: 1.8rem;">ACCÈS CHAUFFEUR</h1>
             
-            <div style="display: flex; flex-direction: column; gap: 15px;">
-                <input type="text" id="username-input" placeholder="Ton Pseudo..." 
-                    style="padding:15px; border-radius:8px; border:1px solid #333; background:#0d1117; color:white; width:250px; text-align:center; font-family:'Rajdhani'; font-size:1.1rem; outline: none;">
-                
-                <button onclick="login()" 
-                        style="padding:12px; background:var(--accent); color:black; border:none; border-radius:8px; font-weight:bold; font-family:'Orbitron'; cursor:pointer; transition: 0.3s; text-transform: uppercase;">
-                    Lancer le moteur
-                </button>
-            </div>
+            <input type="text" id="username-input" placeholder="Ton Pseudo..." 
+                   style="padding:15px; border-radius:8px; border:1px solid #333; background:#0d1117; color:white; width:250px; text-align:center; margin-bottom: 15px; outline: none;">
             
+            <button onclick="login()" 
+                    style="padding:12px 40px; background:var(--accent); color:black; border:none; border-radius:8px; font-weight:bold; font-family:'Orbitron'; cursor:pointer; text-transform: uppercase;">
+                Lancer le moteur
+            </button>
         </div>
     </div>
 
-    <div class="main">
+    <div class="main-container">
         <div class="side">
-            <div class="widget"><h3>FUEL</h3><div id="fuel" style="font-size:2rem;">---</div></div>
-            <div class="widget" style="margin-top:20px;"><h3>CONSO</h3><div id="avg-cons" style="font-size: 2rem; color: #ffcc00;">0.0</div></div>
+            <div class="widget">
+                <h3>CARBURANT</h3>
+                <div id="fuel" style="font-size: 2.5rem;">-- L</div>
+            </div>
+            <div class="widget" style="margin-top: 20px;">
+                <h3>CONSOMMATION</h3>
+                <div id="avg-cons" style="font-size: 2.5rem; color: #ffcc00;">0.0</div>
+                <small>L/100KM</small>
+            </div>
         </div>
+
         <div class="center">
-            <div style="text-align:center; margin-bottom:10px; color:var(--accent);">CHAUFFEUR : <span id="current-driver">---</span></div>
-            <div class="widget"><div style="font-family:'Orbitron'; font-size:4rem;" id="speed">0</div><div>KM/H</div></div>
-            <div id="radar"><div id="truck-point"></div></div>
+            <div style="text-align:center; margin-bottom:15px; color:var(--accent); font-weight: bold;">
+                UNITÉ : <span id="current-driver">---</span>
+            </div>
+            <div class="widget">
+                <div class="speed-value" id="speed">0</div>
+                <div style="letter-spacing: 5px;">KM/H</div>
+            </div>
+            <div id="radar">
+                <div id="truck-point"></div>
+            </div>
         </div>
+
         <div class="side">
-            <div class="widget"><h3>DÉGÂTS</h3><div id="damage" style="font-size:2rem;">0%</div></div>
-            <div class="widget" style="margin-top:20px;"><a href="leaderboard.html" style="color:gold; text-decoration:none;">🏆 CLASSEMENT</a></div>
+            <div class="widget">
+                <h3>ÉTAT CAMION</h3>
+                <div id="damage" style="font-size: 2.5rem; color: #ff4444;">0%</div>
+                <small>DÉGÂTS</small>
+            </div>
+            <div class="widget" style="margin-top: 20px;">
+                <a href="leaderboard.html" style="color:gold; text-decoration:none; font-family:'Orbitron';">🏆 CLASSEMENT</a>
+            </div>
+            <button onclick="logout()" style="margin-top: 20px; width: 100%; background: none; border: 1px dashed gray; color: gray; cursor: pointer; padding: 5px;">Déconnexion</button>
         </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
+
+        // Vérification session au chargement
         window.onload = () => {
             const name = localStorage.getItem('driverName');
             if(name) {
                 document.getElementById('login-overlay').style.display = 'none';
-                document.getElementById('current-driver').innerText = name;
+                document.getElementById('current-driver').innerText = name.toUpperCase();
             }
         };
+
         function login() {
             const name = document.getElementById('username-input').value;
-            if(name.length > 2) { localStorage.setItem('driverName', name); location.reload(); }
+            if(name.trim().length > 2) {
+                localStorage.setItem('driverName', name.trim());
+                location.reload();
+            } else {
+                alert("Pseudo trop court !");
+            }
         }
+
+        function logout() {
+            localStorage.removeItem('driverName');
+            location.reload();
+        }
+
+        // Réception des données en temps réel
         socket.on('update_dashboard', (data) => {
             document.getElementById('speed').innerText = data.truck.speed;
             document.getElementById('fuel').innerText = Math.round(data.truck.fuel) + " L";
             document.getElementById('damage').innerText = Math.round(data.truck.wearSum) + "%";
             document.getElementById('avg-cons').innerText = data.avgConsumption;
+
+            // Mise à jour de la position GPS (Radar)
             if(data.location.x) {
-                const r = document.getElementById('radar');
-                document.getElementById('truck-point').style.left = (r.offsetWidth/2 + data.location.x * 0.5) + 'px';
-                document.getElementById('truck-point').style.top = (r.offsetHeight/2 + data.location.z * 0.5) + 'px';
+                const radar = document.getElementById('radar');
+                const point = document.getElementById('truck-point');
+                // Ajustement de l'échelle selon tes besoins
+                point.style.left = (radar.offsetWidth/2 + data.location.x * 0.2) + 'px';
+                point.style.top = (radar.offsetHeight/2 + data.location.z * 0.2) + 'px';
             }
         });
     </script>
