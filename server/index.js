@@ -1,5 +1,5 @@
 // --- CONFIGURATION INITIALE ---
-const MAINTENANCE_MODE = false; // Passe à true pour bloquer l'accès au site
+const MAINTENANCE_MODE = true; // Passe à true pour bloquer l'accès au site
 
 const express = require('express');
 const http = require('http');
