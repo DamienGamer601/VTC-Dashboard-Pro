@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil VTC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&family=Rajdhani:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body { background: #080a0f; color: white; font-family: 'Rajdhani', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #11141d; border: 2px solid #00d1ff; border-radius: 20px; padding: 40px; text-align: center; width: 350px; }
+        .val { font-family: 'Orbitron'; color: #00d1ff; font-size: 1.5rem; }
+        .badge { background: #1a1d26; border: 1px solid #39ff14; padding: 5px; margin: 5px; font-size: 0.8rem; border-radius: 4px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1 id="name" style="font-family: 'Orbitron';">---</h1>
+        <div id="rank" style="font-weight:bold; margin-bottom:20px;">RANK</div>
+        <p>DISTANCE</p><div id="dist" class="val">0 KM</div>
+        <p>SOLDE</p><div id="money" class="val" style="color:#39ff14">0 €</div>
+        <div id="badges-container" style="margin-top:20px;"></div>
+        <br><a href="index.html" style="color:#888; text-decoration:none;">← RETOUR</a>
+    </div>
+    <script>
+        const name = localStorage.getItem('driverName') || "Chauffeur_1";
+        fetch(`/api/driver/${name}`).then(r => r.json()).then(data => {
+            document.getElementById('name').innerText = data.name;
+            document.getElementById('dist').innerText = Math.round(data.distance) + " KM";
+            document.getElementById('money').innerText = data.wallet.toLocaleString() + " €";
+            document.getElementById('rank').innerText = data.rank;
+            document.getElementById('rank').style.color = data.rankColor;
+            data.badges.forEach(b => {
+                const el = document.createElement('div'); el.className = 'badge';
+                el.innerText = b.name; document.getElementById('badges-container').appendChild(el);
+            });
+        });
+    </script>
+</body>
+</html>

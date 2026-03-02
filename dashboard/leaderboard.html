@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hall of Fame</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&family=Rajdhani:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body { background: #080a0f; color: white; font-family: 'Rajdhani', sans-serif; padding: 50px; text-align: center; }
+        table { width: 80%; margin: 20px auto; border-collapse: collapse; background: #11141d; border: 1px solid #252a37; }
+        th, td { padding: 15px; border-bottom: 1px solid #252a37; }
+        th { color: #00d1ff; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+    <h1 style="font-family:'Orbitron'; color:#00d1ff;">HALL OF FAME</h1>
+    <table>
+        <thead><tr><th>Rang</th><th>Chauffeur</th><th>Distance</th><th>Fortune</th></tr></thead>
+        <tbody id="lb-body"></tbody>
+    </table>
+    <br><a href="index.html" style="color:#888; text-decoration:none;">RETOUR</a>
+    <script>
+        fetch('/api/leaderboard').then(r => r.json()).then(data => {
+            const body = document.getElementById('lb-body');
+            data.forEach((d, i) => {
+                body.innerHTML += `<tr><td>#${i+1}</td><td>${d.name}</td><td>${Math.round(d.distance)} KM</td><td style="color:#39ff14">${d.wallet} €</td></tr>`;
+            });
+        });
+    </script>
+</body>
+</html>

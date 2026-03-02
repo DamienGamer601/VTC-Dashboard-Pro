@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion VTC</title>
+    <style>
+        body { background: #080a0f; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-box { background: #11141d; padding: 40px; border-radius: 15px; border: 1px solid #00d1ff; text-align: center; }
+        input { padding: 10px; width: 200px; border-radius: 5px; border: none; margin-bottom: 20px; }
+        button { background: #00d1ff; color: black; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h2>IDENTIFICATION CHAUFFEUR</h2>
+        <input type="text" id="username" placeholder="Entrez votre pseudo...">
+        <br>
+        <button onclick="login()">SE CONNECTER</button>
+    </div>
+    <script>
+        function login() {
+            const name = document.getElementById('username').value;
+            if(name) {
+                localStorage.setItem('driverName', name);
+                window.location.href = "index.html";
+            }
+        }
+    </script>
+</body>
+</html>

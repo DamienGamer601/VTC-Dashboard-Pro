@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VTC Dashboard Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #080a0f; --card: #11141d; --accent: #00d1ff; --text: #e6edf3; }
+        body { background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; margin: 0; overflow-x: hidden; }
+        .news-ticker { background: #1a1d26; border-bottom: 1px solid var(--accent); padding: 8px; white-space: nowrap; }
+        @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        .main { display: grid; grid-template-columns: 280px 1fr 280px; gap: 20px; padding: 20px; }
+        .widget { background: var(--card); border-radius: 12px; padding: 15px; border: 1px solid #252a37; text-align: center; }
+        #radar { position: relative; height: 250px; background: #05070a; border: 1px solid var(--accent); border-radius: 10px; overflow: hidden; }
+        #truck-point { position: absolute; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); transform: translate(-50%, -50%); transition: 0.5s; }
+        .speed-val { font-family: 'Orbitron'; font-size: 4rem; color: var(--accent); }
+    </style>
+</head>
+<body>
+    <div class="news-ticker"><div id="news-content" style="display:inline-block; animation: scroll 20s linear infinite;">Chargement...</div></div>
+    <div class="main">
+        <div class="side">
+            <div class="widget"><h3>CARBURANT</h3><div id="fuel" style="font-size:2rem;">100%</div></div>
+            <div class="widget" style="margin-top:20px;"><h3>CONSO MOY.</h3><div id="avg-cons" style="font-size: 2rem; color: #ffcc00;">0.0</div><small>L/100KM</small></div>
+        </div>
+        <div class="center">
+            <div class="widget">
+                <div class="speed-val" id="speed">0</div><div>KM/H</div>
+                <div id="city" style="color: var(--accent);">Localisation...</div>
+            </div>
+            <div id="radar"><div id="truck-point"></div></div>
+        </div>
+        <div class="side">
+            <div class="widget"><h3>DÉGÂTS</h3><div id="damage" style="font-size:2rem;">0%</div></div>
+            <div class="widget" style="margin-top:20px;"><a href="profile.html" style="color:var(--accent); text-decoration:none;">👤 MON PROFIL</a></div>
+            <div class="widget" style="margin-top:20px;"><a href="leaderboard.html" style="color:#ffd700; text-decoration:none;">🏆 CLASSEMENT</a></div>
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        fetch('/api/news').then(r => r.json()).then(d => { document.getElementById('news-content').innerText = d.map(n => `[${n.date}] ${n.text}`).join(" --- "); });
+        socket.on('update_dashboard', (data) => {
+            document.getElementById('speed').innerText = data.truck.speed;
+            document.getElementById('damage').innerText = Math.round(data.truck.wearSum) + "%";
+            document.getElementById('avg-cons').innerText = data.avgConsumption || "0.0";
+            if(data.location.x) {
+                const r = document.getElementById('radar');
+                document.getElementById('truck-point').style.left = (r.offsetWidth/2 + data.location.x * 0.5) + 'px';
+                document.getElementById('truck-point').style.top = (r.offsetHeight/2 + data.location.z * 0.5) + 'px';
+            }
+        });
+    </script>
+</body>
+</html>
