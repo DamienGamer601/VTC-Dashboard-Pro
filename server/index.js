@@ -10,7 +10,7 @@ const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
 // --- CONFIGURATION MONGODB ---
-const MONGO_URI = "TON_LIEN_MONGODB_ICI"; // Remplace par ton lien Atlas
+const MONGO_URI = "mongodb+srv://damienthil60_db_user:syUozi0fA1dlJfwY@cluster0.ieo8gkh.mongodb.net/?appName=Cluster0"; // Remplace par ton lien Atlas
 mongoose.connect(MONGO_URI)
     .then(() => console.log("✅ Connecté à MongoDB Atlas"))
     .catch(err => console.error("❌ Erreur MongoDB:", err));

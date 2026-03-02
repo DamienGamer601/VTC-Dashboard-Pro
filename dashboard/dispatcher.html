@@ -3,57 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dispatcher VTC - Attribution des Contrats</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <title>Dispatcher Logistique - VTC Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #00d1ff; --bg: #05070a; --card: #11141d; }
-        body { 
-            background: var(--bg); color: white; font-family: 'Rajdhani', sans-serif; padding: 40px;
-            background-image: radial-gradient(circle, #11141d 1px, transparent 1px); background-size: 30px 30px;
-        }
-        .dispatch-container { max-width: 600px; margin: auto; }
-        .card { background: var(--card); border: 1px solid var(--accent); border-radius: 15px; padding: 30px; box-shadow: 0 0 20px rgba(0,209,255,0.1); }
-        h1 { font-family: 'Orbitron'; color: var(--accent); text-align: center; margin-bottom: 30px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; color: #888; }
-        input, select { 
-            width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 5px; 
-            border: 1px solid #333; background: #0d1117; color: white; font-size: 1.1rem;
-        }
-        button { 
-            width: 100%; padding: 15px; background: var(--accent); color: black; 
-            border: none; border-radius: 5px; font-family: 'Orbitron'; font-weight: bold; cursor: pointer;
-        }
-        button:hover { filter: brightness(1.2); }
-        .info { font-size: 0.8rem; color: #555; text-align: center; margin-top: 10px; }
+        :root { --bg: #f8fafc; --sidebar: #0f172a; --accent: #2563eb; --card: #ffffff; --text-muted: #64748b; --border: #e2e8f0; }
+        body { background: var(--bg); font-family: 'Inter', sans-serif; display: flex; justify-content: center; padding: 40px; margin: 0; }
+        .dispatch-card { background: var(--card); border-radius: 12px; padding: 40px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05); width: 100%; max-width: 450px; }
+        h1 { font-size: 1.1rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 30px; text-align: center; }
+        label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+        input { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 6px; border: 1px solid var(--border); box-sizing: border-box; font-size: 1rem; }
+        button { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #1d4ed8; }
+        .footer { margin-top: 25px; text-align: center; font-size: 0.8rem; color: #94a3b8; }
     </style>
 </head>
 <body>
+    <div class="dispatch-card">
+        <h1>🛰️ Attribution de Mission</h1>
+        
+        <label>Clé Dispatcher</label>
+        <input type="password" id="d-pass" placeholder="Code secret...">
 
-    <div class="dispatch-container">
-        <h1>🛰️ DISPATCH CENTER</h1>
+        <label>Identifiant Chauffeur</label>
+        <input type="text" id="d-target" placeholder="Ex: Damian_77">
 
-        <div class="card">
-            <label>🔑 CODE ADMIN</label>
-            <input type="password" id="d-pass" placeholder="Code secret...">
+        <label>Ville de Destination</label>
+        <input type="text" id="d-city" placeholder="Ex: Marseille, Lyon...">
 
-            <label>👤 CHAUFFEUR CONCERNÉ</label>
-            <input type="text" id="d-target" placeholder="Pseudo exact...">
+        <label>Type de Cargaison</label>
+        <input type="text" id="d-cargo" placeholder="Ex: Produits Frais, Carburant...">
 
-            <label>📍 DESTINATION ASSIGNÉE</label>
-            <input type="text" id="d-city" placeholder="Ex: Paris, Berlin, Londres...">
-
-            <label>📦 CARGAISON</label>
-            <input type="text" id="d-cargo" placeholder="Ex: Matériel Médical, Voitures...">
-
-            <button onclick="sendDispatch()">EMETTRE L'ORDRE DE MISSION</button>
-            <p class="info">L'ordre s'affichera instantanément sur le dashboard du chauffeur.</p>
+        <button onclick="sendDispatch()">ÉMETTRE L'ORDRE DE ROUTE</button>
+        
+        <div class="footer">
+            Système Central de Logistique VTC Pro
         </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-
         function sendDispatch() {
             const data = {
                 target: document.getElementById('d-target').value,
@@ -61,17 +50,13 @@
                 cargo: document.getElementById('d-cargo').value,
                 secret: document.getElementById('d-pass').value
             };
-
-            if(!data.target || !data.city || !data.secret) return alert("Champs manquants !");
-
-            // Envoi au serveur
-            socket.emit('admin_dispatch_job', data);
-            
-            alert("Mission envoyée au chauffeur " + data.target);
-            // On vide les champs sauf le pass
-            document.getElementById('d-target').value = "";
-            document.getElementById('d-city').value = "";
-            document.getElementById('d-cargo').value = "";
+            if(data.target && data.city && data.secret) {
+                socket.emit('admin_dispatch_job', data);
+                alert("Mission assignée avec succès !");
+                document.getElementById('d-target').value = "";
+                document.getElementById('d-city').value = "";
+                document.getElementById('d-cargo').value = "";
+            }
         }
     </script>
 </body>

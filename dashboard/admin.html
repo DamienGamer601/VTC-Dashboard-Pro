@@ -3,160 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Direction - VTC Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <title>Administration Flotte - VTC Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --accent: #ff4444; 
-            --bg: #080a0f; 
-            --card: #11141d; 
-            --success: #00ff88;
-            --warning: #ffcc00;
+            --bg: #f8fafc; --sidebar: #0f172a; --accent: #2563eb; --card: #ffffff;
+            --text-main: #1e293b; --text-muted: #64748b; --border: #e2e8f0;
+            --danger: #ef4444; --success: #10b981; --warning: #f59e0b;
         }
-
-        body { 
-            background: var(--bg); 
-            color: white; 
-            font-family: 'Rajdhani', sans-serif; 
-            padding: 40px;
-            text-align: center;
-            background-image: radial-gradient(circle, #11141d 1px, transparent 1px);
-            background-size: 30px 30px;
-        }
-
-        .admin-container { max-width: 500px; margin: auto; }
-
-        .admin-card { 
-            background: var(--card); 
-            border: 2px solid #333; 
-            border-radius: 15px; 
-            padding: 25px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            margin-bottom: 25px;
-            transition: 0.3s;
-        }
-
-        h1 { font-family: 'Orbitron'; color: var(--accent); margin-bottom: 30px; letter-spacing: 3px; }
-        h3 { font-family: 'Orbitron'; font-size: 0.85rem; margin-bottom: 15px; letter-spacing: 1px; color: #aaa; }
-
+        body { background: var(--bg); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; padding: 40px; }
+        .admin-container { max-width: 500px; width: 100%; }
+        .card { background: var(--card); border-radius: 12px; padding: 30px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 25px; }
+        h1 { font-size: 1.25rem; font-weight: 700; text-align: center; color: var(--sidebar); margin-bottom: 30px; letter-spacing: -0.025em; }
+        h3 { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 15px; }
         input { 
-            width: 100%; 
-            padding: 12px; 
-            margin-bottom: 15px; 
-            border-radius: 5px; 
-            border: 1px solid #222; 
-            background: #05070a; 
-            color: white; 
-            box-sizing: border-box;
-            text-align: center;
-            font-family: 'Rajdhani';
-            font-size: 1.1rem;
+            width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; 
+            border: 1px solid var(--border); background: #fdfdfd; color: var(--text-main); font-size: 0.95rem; box-sizing: border-box;
         }
-
-        button { 
-            width: 100%; 
-            padding: 12px; 
-            border: none; 
-            border-radius: 5px; 
-            font-family: 'Orbitron'; 
-            font-weight: bold; 
-            cursor: pointer; 
-            transition: 0.2s;
-            text-transform: uppercase;
+        input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+        .btn { 
+            width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.9rem;
         }
-
-        .btn-flash { background: var(--accent); color: white; }
-        .btn-bonus { background: var(--success); color: black; }
-        .btn-repair { background: var(--warning); color: black; }
-        
-        button:hover { opacity: 0.8; transform: translateY(-2px); }
-        button:active { transform: translateY(0); }
-
-        .security-note { color: #444; font-size: 0.75rem; margin-top: 5px; }
+        .btn-flash { background: var(--sidebar); color: white; }
+        .btn-bonus { background: var(--accent); color: white; }
+        .btn-repair { background: var(--warning); color: white; }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .back-link { display: block; text-align: center; margin-top: 20px; color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
     </style>
 </head>
 <body>
-
     <div class="admin-container">
-        <h1>🛠️ DIRECTION VTC</h1>
+        <h1>🛠️ PANEL DIRECTION</h1>
 
-        <div class="admin-card" style="border-color: #444;">
-            <h3>🔑 CLÉ DE SÉCURITÉ OBLIGATOIRE</h3>
-            <input type="password" id="admin-pass" placeholder="Entrez le code secret...">
-            <div class="security-note">Requis pour valider chaque opération cloud</div>
+        <div class="card" style="border-top: 4px solid var(--text-muted);">
+            <h3>🔑 Authentification Requise</h3>
+            <input type="password" id="admin-pass" placeholder="Clé de sécurité cloud...">
         </div>
 
-        <div class="admin-card" style="border-color: var(--accent);">
-            <h3 style="color: var(--accent);">📢 ALERTE GÉNÉRALE (FLASH)</h3>
-            <input type="text" id="flash-msg" placeholder="Ex: Pause de 15min à la prochaine aire !">
-            <button class="btn-flash" onclick="sendFlash()">Diffuser sur tous les écrans</button>
+        <div class="card">
+            <h3>📢 Note de Service (Flash)</h3>
+            <input type="text" id="flash-msg" placeholder="Texte de l'alerte...">
+            <button class="btn btn-flash" onclick="sendFlash()">Diffuser le message</button>
         </div>
 
-        <div class="admin-card" style="border-color: var(--success);">
-            <h3 style="color: var(--success);">💸 COMPTABILITÉ (PRIME / AMENDE)</h3>
-            <input type="text" id="bonus-name" placeholder="Pseudo du chauffeur">
-            <input type="number" id="bonus-amount" placeholder="Montant (ex: 1000 ou -500)">
-            <button class="btn-bonus" onclick="sendBonus()">Appliquer la transaction</button>
+        <div class="card">
+            <h3>💸 Gestion Financière</h3>
+            <input type="text" id="bonus-name" placeholder="Nom du chauffeur">
+            <input type="number" id="bonus-amount" placeholder="Montant (€)">
+            <button class="btn btn-bonus" onclick="sendBonus()">Valider la transaction</button>
         </div>
 
-        <div class="admin-card" style="border-color: var(--warning);">
-            <h3 style="color: var(--warning);">🛠️ UNITÉ D'ASSISTANCE (REPAIR)</h3>
-            <input type="text" id="repair-name" placeholder="Pseudo du chauffeur à dépanner">
-            <button class="btn-repair" onclick="sendRepair()">Réparer le camion à distance</button>
+        <div class="card">
+            <h3>🛠️ Assistance Technique</h3>
+            <input type="text" id="repair-name" placeholder="Nom du chauffeur">
+            <button class="btn btn-repair" onclick="sendRepair()">Réparer à distance</button>
         </div>
 
-        <a href="index.html" style="color:gray; text-decoration:none; font-size:0.9rem;">← Quitter le Panel Direction</a>
+        <a href="index.html" class="back-link">← Quitter l'administration</a>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-
-        // Fonction pour envoyer un message Flash
         function sendFlash() {
             const msg = document.getElementById('flash-msg').value;
             const pass = document.getElementById('admin-pass').value;
-
-            if(!msg || !pass) return alert("Veuillez remplir le message et le code secret !");
-
-            socket.emit('admin_flash', msg); 
-            alert("Message flash diffusé !");
-            document.getElementById('flash-msg').value = "";
+            if(msg && pass) { socket.emit('admin_flash', msg); alert("Diffusé !"); }
         }
-
-        // Fonction pour les Primes et Amendes
         function sendBonus() {
             const name = document.getElementById('bonus-name').value;
             const amount = document.getElementById('bonus-amount').value;
             const pass = document.getElementById('admin-pass').value;
-
-            if(!name || !amount || !pass) return alert("Données manquantes pour la transaction.");
-
-            socket.emit('admin_give_bonus', {
-                driverName: name,
-                amount: amount,
-                secret: pass
-            });
-
-            alert(`Ordre financier envoyé pour ${name}`);
-            document.getElementById('bonus-name').value = "";
-            document.getElementById('bonus-amount').value = "";
+            if(name && amount && pass) {
+                socket.emit('admin_give_bonus', { driverName: name, amount: amount, secret: pass });
+                alert("Ordre financier envoyé.");
+            }
         }
-
-        // Fonction pour la Réparation à distance
         function sendRepair() {
             const name = document.getElementById('repair-name').value;
             const pass = document.getElementById('admin-pass').value;
-
-            if(!name || !pass) return alert("Veuillez indiquer le nom du chauffeur et le code secret.");
-
-            socket.emit('admin_repair_truck', {
-                driverName: name,
-                secret: pass
-            });
-
-            alert(`Signal de réparation envoyé à l'unité de ${name}`);
-            document.getElementById('repair-name').value = "";
+            if(name && pass) {
+                socket.emit('admin_repair_truck', { driverName: name, secret: pass });
+                alert("Signal de réparation envoyé.");
+            }
         }
     </script>
 </body>
