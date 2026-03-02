@@ -3,89 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administration Flotte - VTC Pro</title>
+    <title>Console Logistique - VTC Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --bg: #f8fafc; --sidebar: #0f172a; --accent: #2563eb; --card: #ffffff;
-            --text-main: #1e293b; --text-muted: #64748b; --border: #e2e8f0;
-            --danger: #ef4444; --success: #10b981; --warning: #f59e0b;
+            --bg: #0f172a; --card: #1e293b; --accent: #3b82f6; 
+            --text: #f8fafc; --muted: #94a3b8; --border: #334155;
+            --success: #10b981; --danger: #ef4444;
         }
-        body { background: var(--bg); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; padding: 40px; }
-        .admin-container { max-width: 500px; width: 100%; }
-        .card { background: var(--card); border-radius: 12px; padding: 30px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 25px; }
-        h1 { font-size: 1.25rem; font-weight: 700; text-align: center; color: var(--sidebar); margin-bottom: 30px; letter-spacing: -0.025em; }
-        h3 { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 15px; }
-        input { 
-            width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; 
-            border: 1px solid var(--border); background: #fdfdfd; color: var(--text-main); font-size: 0.95rem; box-sizing: border-box;
+
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+        .status-dot { height: 10px; width: 10px; background: var(--success); border-radius: 50%; display: inline-block; margin-right: 8px; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        h3 { margin-top: 0; font-size: 0.9rem; text-transform: uppercase; color: var(--accent); letter-spacing: 1px; }
+
+        label { display: block; font-size: 0.8rem; margin-bottom: 8px; color: var(--muted); font-weight: 600; }
+        input, select, textarea { 
+            width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); 
+            border-radius: 6px; color: white; margin-bottom: 15px; box-sizing: border-box; font-family: 'Inter';
         }
-        input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+
         .btn { 
-            width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.9rem;
+            width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; transition: 0.2s; text-transform: uppercase; font-size: 0.8rem;
         }
-        .btn-flash { background: var(--sidebar); color: white; }
-        .btn-bonus { background: var(--accent); color: white; }
-        .btn-repair { background: var(--warning); color: white; }
-        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
-        .back-link { display: block; text-align: center; margin-top: 20px; color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
+        .btn-blue { background: var(--accent); color: white; }
+        .btn-blue:hover { background: #2563eb; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { background: var(--border); }
+
+        .log-box { margin-top: 20px; background: #000; padding: 15px; border-radius: 6px; font-family: 'JetBrains Mono'; font-size: 0.8rem; height: 150px; overflow-y: auto; color: #adbac7; border: 1px solid var(--border); }
     </style>
 </head>
 <body>
-    <div class="admin-container">
-        <h1>🛠️ PANEL DIRECTION</h1>
 
-        <div class="card" style="border-top: 4px solid var(--text-muted);">
-            <h3>🔑 Authentification Requise</h3>
-            <input type="password" id="admin-pass" placeholder="Clé de sécurité cloud...">
+    <div class="container">
+        <header>
+            <div>
+                <h1 style="margin:0; font-size:1.4rem;">CENTRE DE DISPATCHING</h1>
+                <p style="color:var(--muted); margin:5px 0 0 0; font-size:0.8rem;"><span class="status-dot"></span> Système de Gestion de Flotte Connecté</p>
+            </div>
+            <button class="btn btn-outline" style="width:auto;" onclick="window.location.href='index.html'">Quitter le Panel</button>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <h3>📢 Alerte Radio (Flash)</h3>
+                <label>Message à diffuser à tous les chauffeurs</label>
+                <textarea id="flash-msg" placeholder="Ex: Attention, travaux sur l'A1 vers Paris !"></textarea>
+                <button class="btn btn-blue" onclick="sendFlash()">Diffuser le message</button>
+            </div>
+
+            <div class="card">
+                <h3>💰 Bonus / Malus Financier</h3>
+                <label>Nom du chauffeur</label>
+                <input type="text" id="target-driver" placeholder="Pseudo exact">
+                <label>Montant (€)</label>
+                <input type="number" id="bonus-amount" placeholder="Ex: 500">
+                <button class="btn btn-blue" onclick="giveBonus()">Appliquer la transaction</button>
+            </div>
+
+            <div class="card">
+                <h3>🛠️ Assistance Dépannage</h3>
+                <label>Réparer à distance le camion de :</label>
+                <input type="text" id="repair-driver" placeholder="Pseudo du chauffeur">
+                <button class="btn btn-outline" onclick="remoteRepair()">Envoyer l'assistance (0€)</button>
+            </div>
+
+            <div class="card">
+                <h3>🖥️ Console Log</h3>
+                <div class="log-box" id="admin-logs">
+                    > En attente d'ordres...<br>
+                </div>
+            </div>
         </div>
-
-        <div class="card">
-            <h3>📢 Note de Service (Flash)</h3>
-            <input type="text" id="flash-msg" placeholder="Texte de l'alerte...">
-            <button class="btn btn-flash" onclick="sendFlash()">Diffuser le message</button>
-        </div>
-
-        <div class="card">
-            <h3>💸 Gestion Financière</h3>
-            <input type="text" id="bonus-name" placeholder="Nom du chauffeur">
-            <input type="number" id="bonus-amount" placeholder="Montant (€)">
-            <button class="btn btn-bonus" onclick="sendBonus()">Valider la transaction</button>
-        </div>
-
-        <div class="card">
-            <h3>🛠️ Assistance Technique</h3>
-            <input type="text" id="repair-name" placeholder="Nom du chauffeur">
-            <button class="btn btn-repair" onclick="sendRepair()">Réparer à distance</button>
-        </div>
-
-        <a href="index.html" class="back-link">← Quitter l'administration</a>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
+        const SECRET = "DAMIAN_VTC_2024"; // Ta clé de sécurité
+
+        function addLog(msg) {
+            const box = document.getElementById('admin-logs');
+            box.innerHTML += `> ${new Date().toLocaleTimeString()} : ${msg}<br>`;
+            box.scrollTop = box.scrollHeight;
+        }
+
         function sendFlash() {
             const msg = document.getElementById('flash-msg').value;
-            const pass = document.getElementById('admin-pass').value;
-            if(msg && pass) { socket.emit('admin_flash', msg); alert("Diffusé !"); }
+            if(!msg) return;
+            socket.emit('admin_flash', msg);
+            addLog(`Alerte envoyée : "${msg}"`);
+            document.getElementById('flash-msg').value = "";
         }
-        function sendBonus() {
-            const name = document.getElementById('bonus-name').value;
+
+        function giveBonus() {
+            const driver = document.getElementById('target-driver').value;
             const amount = document.getElementById('bonus-amount').value;
-            const pass = document.getElementById('admin-pass').value;
-            if(name && amount && pass) {
-                socket.emit('admin_give_bonus', { driverName: name, amount: amount, secret: pass });
-                alert("Ordre financier envoyé.");
-            }
+            if(!driver || !amount) return;
+            
+            socket.emit('admin_give_bonus', { 
+                secret: SECRET, 
+                driverName: driver, 
+                amount: amount 
+            });
+            addLog(`Transaction de ${amount}€ vers ${driver}`);
         }
-        function sendRepair() {
-            const name = document.getElementById('repair-name').value;
-            const pass = document.getElementById('admin-pass').value;
-            if(name && pass) {
-                socket.emit('admin_repair_truck', { driverName: name, secret: pass });
-                alert("Signal de réparation envoyé.");
-            }
+
+        function remoteRepair() {
+            const driver = document.getElementById('repair-driver').value;
+            if(!driver) return;
+            socket.emit('admin_repair_truck', { 
+                secret: SECRET, 
+                driverName: driver 
+            });
+            addLog(`Ordre de réparation envoyé à ${driver}`);
         }
     </script>
 </body>
