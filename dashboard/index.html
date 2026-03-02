@@ -16,14 +16,23 @@
     </style>
 </head>
 <body>
-    <div id="login-overlay">
-        <div class="login-box">
-            <img src="logo.png" alt="Logo VTC" style="width: 200px; margin-bottom: 20px;">
+    <div id="login-overlay" style="background: radial-gradient(circle, #11141d 0%, #080a0f 100%);">
+        <div class="login-box" style="display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid var(--accent); box-shadow: 0 0 20px rgba(0, 209, 255, 0.2);">
             
-            <h1 style="font-family:'Orbitron'; color:var(--accent); margin-top:0;">ACCÈS CHAUFFEUR</h1>
-            <input type="text" id="username-input" placeholder="Ton Pseudo..." style="padding:12px; border-radius:5px; border:1px solid #333; background:#080a0f; color:white; width:200px; text-align:center;">
-            <br>
-            <button onclick="login()" style="margin-top:20px; padding:10px 25px; background:var(--accent); color:black; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">REJOINDRE LE CONVOI</button>
+            <img src="logo.png" alt="Logo VTC" style="width: 220px; height: auto; margin-bottom: 25px; filter: drop-shadow(0 0 10px var(--accent));">
+            
+            <h1 style="font-family:'Orbitron'; color:var(--accent); margin: 0 0 20px 0; font-size: 1.8rem; letter-spacing: 2px;">ACCÈS CHAUFFEUR</h1>
+            
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <input type="text" id="username-input" placeholder="Ton Pseudo..." 
+                    style="padding:15px; border-radius:8px; border:1px solid #333; background:#0d1117; color:white; width:250px; text-align:center; font-family:'Rajdhani'; font-size:1.1rem; outline: none;">
+                
+                <button onclick="login()" 
+                        style="padding:12px; background:var(--accent); color:black; border:none; border-radius:8px; font-weight:bold; font-family:'Orbitron'; cursor:pointer; transition: 0.3s; text-transform: uppercase;">
+                    Lancer le moteur
+                </button>
+            </div>
+            
         </div>
     </div>
 
