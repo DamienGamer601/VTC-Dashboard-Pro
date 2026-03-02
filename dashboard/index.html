@@ -28,7 +28,7 @@
             min-height: 100vh;
         }
 
-        /* Sidebar Sidebar */
+        /* Sidebar */
         .sidebar {
             width: 260px;
             background: var(--sidebar);
@@ -108,10 +108,6 @@
         .bar-bg { height: 6px; background: #334155; border-radius: 3px; overflow: hidden; margin-bottom: 25px; }
         .bar-fill { height: 100%; width: 0%; transition: width 0.4s ease; }
 
-        /* Mission Area */
-        .mission-header { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; }
-        .mission-city { font-size: 1.2rem; font-weight: 700; color: var(--accent); }
-
         /* Buttons */
         .btn { 
             width: 100%; 
@@ -162,6 +158,9 @@
         </div>
 
         <button class="btn btn-outline" onclick="window.location.href='leaderboard.html'" style="margin-top:20px; border-color:#334155; color:white;">🏆 CLASSEMENT</button>
+        
+        <button class="btn btn-outline" onclick="checkAdminAccess()" style="border-color:#334155; color:#94a3b8;">⚙️ ADMINISTRATION</button>
+
         <button class="btn btn-logout" onclick="logout()">LOGOUT</button>
     </div>
 
@@ -195,16 +194,8 @@
             <div class="speed-unit">Kilomètres / Heure</div>
         </div>
 
-        <div class="stats-grid">
-            <div class="card" style="grid-column: span 2;">
-                <div class="mission-header">Ordre de mission actif</div>
-                <div id="m-city" class="mission-city">EN ATTENTE DE DISPATCH...</div>
-                <div id="m-cargo" style="color:var(--text-muted); font-size:0.9rem; margin-top:5px;">Cargaison : Non spécifiée</div>
-            </div>
-            <div class="card">
-                <button class="btn btn-primary" onclick="window.location.href='profile.html?user='+localStorage.getItem('vtcName')">VOIR MON PROFIL</button>
-                <div style="font-size:0.7rem; color:var(--text-muted); text-align:center;">Système certifié SCS Telemetry</div>
-            </div>
+        <div class="card">
+            <button class="btn btn-primary" onclick="window.location.href='profile.html?user='+localStorage.getItem('vtcName')">VOIR MON PROFIL PUBLIC</button>
         </div>
     </div>
 
@@ -216,33 +207,33 @@
         if (!user) { window.location.href = "login.html"; }
         else { document.getElementById('driver-name').innerText = user.toUpperCase(); }
 
+        // --- FONCTION ACCÈS ADMIN ---
+        function checkAdminAccess() {
+            const code = prompt("Veuillez saisir le code d'accès administrateur :");
+            if (code === "DAMIAN_VTC_2024") {
+                window.location.href = 'admin.html';
+            } else if (code !== null) {
+                alert("⚠️ Accès refusé : Code incorrect.");
+            }
+        }
+
         socket.on('update_dashboard', (data) => {
-            // Vitesse & Boite
             document.getElementById('speed').innerText = data.truck.speed;
             const gear = data.truck.displayedGear;
             document.getElementById('gear-box').innerText = gear > 0 ? 'D' + gear : (gear < 0 ? 'R' : 'N');
             
-            // Badges
             document.getElementById('badge-p').className = data.truck.parkBrakeOn ? 'status-badge active-parking' : 'status-badge';
             document.getElementById('badge-c').className = data.truck.cruiseControlOn ? 'status-badge active-cruise' : 'status-badge';
 
-            // Stats
             document.getElementById('odometer').innerText = Math.round(data.totalKM) + " KM";
             document.getElementById('wallet').innerText = data.wallet.toLocaleString() + " €";
             
-            // Jauges Sidebar
             const fuelPct = (data.truck.fuel / (data.truck.fuelCapacity || 400)) * 100;
             document.getElementById('fuel-bar').style.width = fuelPct + "%";
             document.getElementById('side-fuel-val').innerText = Math.round(data.truck.fuel) + " L";
             
             document.getElementById('damage-bar').style.width = data.truck.wearSum + "%";
             document.getElementById('side-damage-val').innerText = Math.round(data.truck.wearSum) + "%";
-
-            // Mission
-            if(data.job && data.job.destinationCity) {
-                document.getElementById('m-city').innerText = data.job.destinationCity.toUpperCase();
-                document.getElementById('m-cargo').innerText = "Cargaison : " + data.job.cargo;
-            }
         });
 
         socket.on('receive_flash', (msg) => {

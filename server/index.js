@@ -9,14 +9,14 @@ const app = express();
 app.use(cors());
 
 // --- CONFIGURATION DES FICHIERS STATIQUES ---
-// Cette ligne est CRUCIALE : elle permet à Render de trouver tes pages HTML
-// On remonte d'un dossier (..) pour sortir de 'server' et on entre dans 'dashboard'
+// Indique à Express de servir les pages HTML du dossier 'dashboard'
 app.use(express.static(path.join(__dirname, '../dashboard')));
 
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
 // --- CONFIGURATION MONGODB ---
+// Utilise la variable d'environnement MONGO_URI configurée sur Render
 const MONGO_URI = process.env.MONGO_URI; 
 
 mongoose.connect(MONGO_URI)
@@ -43,11 +43,12 @@ const DeliverySchema = new mongoose.Schema({
 const Delivery = mongoose.model('Delivery', DeliverySchema);
 
 // --- ROUTE PAR DÉFAUT ---
+// Redirige les visiteurs vers la page de login
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../dashboard/login.html'));
 });
 
-// --- LOGIQUE SOCKET.IO ---
+// --- LOGIQUE TEMPS RÉEL (SOCKET.IO) ---
 io.on('connection', (socket) => {
     console.log("🌐 Un utilisateur s'est connecté");
 
@@ -61,7 +62,7 @@ io.on('connection', (socket) => {
             await driver.save();
         }
 
-        // Calculs économiques
+        // Calcul consommation carburant (Estimation 1.50€/L)
         if (socket.lastFuel && data.truck.fuel < socket.lastFuel) {
             let cost = (socket.lastFuel - data.truck.fuel) * 1.50;
             driver.wallet -= cost;
@@ -69,6 +70,7 @@ io.on('connection', (socket) => {
         }
         socket.lastFuel = data.truck.fuel;
 
+        // Calcul des réparations (Dégâts mécaniques)
         if (socket.lastWear && data.truck.wearSum > socket.lastWear) {
             let repairCost = (data.truck.wearSum - socket.lastWear) * 100;
             driver.wallet -= repairCost;
@@ -76,6 +78,7 @@ io.on('connection', (socket) => {
         }
         socket.lastWear = data.truck.wearSum;
 
+        // Calcul de la distance et prime au KM (0.50€/KM)
         if (socket.lastKM && data.truck.odometer > socket.lastKM) {
             let dist = data.truck.odometer - socket.lastKM;
             driver.distance += dist;
@@ -83,26 +86,24 @@ io.on('connection', (socket) => {
         }
         socket.lastKM = data.truck.odometer;
 
-        // Détection de livraison
+        // Détection automatique de fin de livraison
         if (socket.inJob && !data.job.cargoLoaded) {
             const reward = 2000;
             driver.wallet += reward;
             const newDel = new Delivery({
                 driverName: driver.name,
-                destination: data.job.destinationCity,
-                cargo: data.job.cargo,
+                destination: data.job.destinationCity || "Inconnue",
+                cargo: data.job.cargo || "Fret standard",
                 reward: reward
             });
             await newDel.save();
-            io.emit('receive_flash', `✅ ${driver.name} a livré ${data.job.cargo} ! (+${reward}€)`);
-            
-            const history = await Delivery.find().sort({ date: -1 }).limit(10);
-            io.emit('update_history', history);
+            io.emit('receive_flash', `✅ ${driver.name} a terminé sa mission ! (+${reward}€)`);
         }
         socket.inJob = data.job.cargoLoaded;
 
         await driver.save();
 
+        // Envoi des données au Dashboard du chauffeur
         socket.emit('update_dashboard', {
             truck: data.truck,
             job: data.job,
@@ -110,11 +111,12 @@ io.on('connection', (socket) => {
             totalKM: Math.round(driver.distance)
         });
 
+        // Mise à jour globale du classement
         const allDrivers = await Driver.find();
         io.emit('update_leaderboard', allDrivers);
     });
 
-    // --- COMMANDES ADMIN ---
+    // --- COMMANDES ADMINISTRATEUR ---
     const ADMIN_SECRET = "DAMIAN_VTC_2024";
 
     socket.on('admin_flash', (msg) => io.emit('receive_flash', msg));
@@ -125,7 +127,7 @@ io.on('connection', (socket) => {
             if (d) {
                 d.wallet += parseFloat(data.amount);
                 await d.save();
-                io.emit('receive_flash', `💰 FINANCE : ${data.driverName} a reçu ${data.amount}€ !`);
+                io.emit('receive_flash', `💰 FINANCE : ${data.driverName} a reçu un bonus de ${data.amount}€ !`);
             }
         }
     });
@@ -136,7 +138,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('disconnect', () => console.log("👋 Déconnexion d'un utilisateur"));
+    socket.on('disconnect', () => console.log("👋 Déconnexion"));
 });
 
 const PORT = process.env.PORT || 3000;
