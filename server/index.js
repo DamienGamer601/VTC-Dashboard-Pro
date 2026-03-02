@@ -3,14 +3,22 @@ const http = require('http');
 const { Server } = require('socket.io');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path'); // Nécessaire pour les chemins de fichiers
 
 const app = express();
 app.use(cors());
+
+// --- GESTION DES FICHIERS STATIQUES ---
+// Cette ligne dit à Express de servir tes pages HTML situées dans le dossier 'dashboard'
+app.use(express.static(path.join(__dirname, '../dashboard')));
+
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
 // --- CONFIGURATION MONGODB ---
-const MONGO_URI = "mongodb+srv://damienthil60_db_user:syUozi0fA1dlJfwY@cluster0.ieo8gkh.mongodb.net/?appName=Cluster0"; // Remplace par ton lien Atlas
+// On utilise la variable d'environnement définie sur Render pour la sécurité
+const MONGO_URI = process.env.MONGO_URI; 
+
 mongoose.connect(MONGO_URI)
     .then(() => console.log("✅ Connecté à MongoDB Atlas"))
     .catch(err => console.error("❌ Erreur MongoDB:", err));
@@ -19,7 +27,7 @@ mongoose.connect(MONGO_URI)
 const DriverSchema = new mongoose.Schema({
     name: { type: String, unique: true },
     distance: { type: Number, default: 0 },
-    wallet: { type: Number, default: 1500 }, // Capital de départ
+    wallet: { type: Number, default: 1500 },
     totalFuelSpends: { type: Number, default: 0 },
     totalRepairSpends: { type: Number, default: 0 }
 });
@@ -34,11 +42,16 @@ const DeliverySchema = new mongoose.Schema({
 });
 const Delivery = mongoose.model('Delivery', DeliverySchema);
 
+// --- ROUTE PRINCIPALE ---
+// Quand tu arrives sur ton-site.onrender.com, on affiche le login
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dashboard/login.html'));
+});
+
 // --- LOGIQUE SOCKET.IO ---
 io.on('connection', (socket) => {
     console.log("🌐 Un utilisateur s'est connecté");
 
-    // 1. RÉCEPTION DES DONNÉES DU CAMION (Télémétrie)
     socket.on('truck_data', async (data) => {
         const { driverName } = data;
         if (!driverName) return;
@@ -49,116 +62,61 @@ io.on('connection', (socket) => {
             await driver.save();
         }
 
-        // --- CALCULS ÉCONOMIQUES ---
-        
-        // A. Carburant (Estimation: 1.50€ le litre consommé)
+        // --- CALCULS ÉCONOMIQUES (Carburant, Dégâts, Distance) ---
         if (socket.lastFuel && data.truck.fuel < socket.lastFuel) {
-            let consumed = socket.lastFuel - data.truck.fuel;
-            let cost = consumed * 1.50;
+            let cost = (socket.lastFuel - data.truck.fuel) * 1.50;
             driver.wallet -= cost;
             driver.totalFuelSpends += cost;
         }
         socket.lastFuel = data.truck.fuel;
 
-        // B. Dégâts (Estimation: 100€ par 1% de dégât supplémentaire)
         if (socket.lastWear && data.truck.wearSum > socket.lastWear) {
-            let damageDiff = data.truck.wearSum - socket.lastWear;
-            let repairCost = damageDiff * 100;
+            let repairCost = (data.truck.wearSum - socket.lastWear) * 100;
             driver.wallet -= repairCost;
             driver.totalRepairSpends += repairCost;
         }
         socket.lastWear = data.truck.wearSum;
 
-        // C. Distance & Gain (0.50€ par KM parcouru)
         if (socket.lastKM && data.truck.odometer > socket.lastKM) {
-            let distanceTravelled = data.truck.odometer - socket.lastKM;
-            driver.distance += distanceTravelled;
-            driver.wallet += distanceTravelled * 0.50;
+            let dist = data.truck.odometer - socket.lastKM;
+            driver.distance += dist;
+            driver.wallet += dist * 0.50;
         }
         socket.lastKM = data.truck.odometer;
 
-        // D. Détection Fin de Mission
+        // Fin de mission
         if (socket.inJob && !data.job.cargoLoaded) {
-            // Le chauffeur vient de livrer !
-            const reward = 2000; // Prime fixe de livraison
+            const reward = 2000;
             driver.wallet += reward;
-            
-            const newDelivery = new Delivery({
-                driverName: driver.name,
-                destination: data.job.destinationCity,
-                cargo: data.job.cargo,
-                reward: reward
-            });
-            await newDelivery.save();
-            
-            // Notification globale
-            io.emit('receive_flash', `✅ ${driver.name} a livré ${data.job.cargo} à ${data.job.destinationCity} ! (+${reward}€)`);
-            
-            // Mise à jour de l'historique pour tout le monde
-            const history = await Delivery.find().sort({ date: -1 }).limit(5);
-            io.emit('update_history', history);
+            const newDel = new Delivery({ driverName: driver.name, destination: data.job.destinationCity, cargo: data.job.cargo, reward: reward });
+            await newDel.save();
+            io.emit('receive_flash', `✅ ${driver.name} a livré ${data.job.cargo} ! (+${reward}€)`);
         }
         socket.inJob = data.job.cargoLoaded;
 
         await driver.save();
 
-        // Envoyer les infos privées au chauffeur
-        socket.emit('update_dashboard', {
-            truck: data.truck,
-            job: data.job,
-            wallet: driver.wallet,
-            totalKM: Math.round(driver.distance)
-        });
-
-        // Mettre à jour le leaderboard public
+        socket.emit('update_dashboard', { truck: data.truck, job: data.job, wallet: driver.wallet, totalKM: Math.round(driver.distance) });
         const allDrivers = await Driver.find();
         io.emit('update_leaderboard', allDrivers);
+        const history = await Delivery.find().sort({ date: -1 }).limit(10);
+        io.emit('update_history', history);
     });
 
-    // 2. COMMANDES ADMIN (Flash, Bonus, Repair, Dispatch)
+    // --- COMMANDES ADMIN ---
     const ADMIN_SECRET = "DAMIAN_VTC_2024";
-
-    socket.on('admin_flash', (msg) => {
-        io.emit('receive_flash', msg);
-    });
-
+    socket.on('admin_flash', (msg) => io.emit('receive_flash', msg));
     socket.on('admin_give_bonus', async (data) => {
         if (data.secret === ADMIN_SECRET) {
-            let driver = await Driver.findOne({ name: data.driverName });
-            if (driver) {
-                driver.wallet += parseFloat(data.amount);
-                await driver.save();
-                io.emit('receive_flash', `💰 FINANCE : ${data.driverName} a reçu un virement de ${data.amount}€ !`);
-                const allDrivers = await Driver.find();
-                io.emit('update_leaderboard', allDrivers);
-            }
+            let d = await Driver.findOne({ name: data.driverName });
+            if (d) { d.wallet += parseFloat(data.amount); await d.save(); }
         }
     });
 
-    socket.on('admin_repair_truck', (data) => {
-        if (data.secret === ADMIN_SECRET) {
-            io.emit('remote_repair', { targetDriver: data.driverName });
-            io.emit('receive_flash', `🛠️ ASSISTANCE : Le camion de ${data.driverName} a été remis à neuf !`);
-        }
-    });
-
-    socket.on('admin_dispatch_job', (data) => {
-        if (data.secret === ADMIN_SECRET) {
-            io.emit('receive_dispatch', {
-                target: data.target,
-                city: data.city,
-                cargo: data.cargo
-            });
-            io.emit('receive_flash', `🛰️ DISPATCH : ${data.target}, rendez-vous à ${data.city} pour charger !`);
-        }
-    });
-
-    socket.on('disconnect', () => {
-        console.log("👋 Un utilisateur s'est déconnecté");
-    });
+    socket.on('disconnect', () => console.log("👋 Déconnexion"));
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`🚀 Serveur actif sur le port ${PORT}`);
+    console.log(`🚀 Serveur en ligne sur le port ${PORT}`);
 });
