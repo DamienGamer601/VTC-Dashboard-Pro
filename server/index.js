@@ -1,5 +1,5 @@
 // --- CONFIGURATION INITIALE ---
-const MAINTENANCE_MODE = true; // Passe à true pour bloquer l'accès au site
+const MAINTENANCE_MODE = false; // Passe à true pour bloquer l'accès au site
 
 const express = require('express');
 const http = require('http');
@@ -60,29 +60,45 @@ io.on('connection', (socket) => {
             await driver.save();
         }
 
-        // 1. Calcul Distance et XP (1km = 1xp + 0.50€)
+        // 1. Calcul Distance et XP (Gain de 1.00€/km)
         if (socket.lastKM && data.truck.odometer > socket.lastKM) {
             let diff = data.truck.odometer - socket.lastKM;
             driver.distance += diff;
             driver.experience += Math.round(diff);
-            driver.wallet += diff * 0.50;
+            driver.wallet += diff * 1.00; 
         }
         socket.lastKM = data.truck.odometer;
 
-        // 2. Calcul Carburant (Estimation 1.50€ / Litre)
+        // 2. Calcul Carburant (Diesel à 1.80€ / Litre)
         if (socket.lastFuel && data.truck.fuel < socket.lastFuel) {
             let consumed = socket.lastFuel - data.truck.fuel;
-            driver.wallet -= consumed * 1.50;
+            driver.wallet -= consumed * 1.80;
         }
         socket.lastFuel = data.truck.fuel;
 
-        // 3. Détection fin de mission
+        // 3. SYSTÈME DE MALUS (Amende pour dégâts)
+        // Se déclenche si les dégâts augmentent de plus de 2% d'un coup
+        if (socket.lastDamage && data.truck.wearSum > socket.lastDamage + 2) {
+            const penalty = 500;
+            driver.wallet -= penalty;
+            // On envoie une alerte spécifique au chauffeur
+            socket.emit('receive_flash', `⚠️ AMENDE : -${penalty}€ pour conduite dangereuse !`);
+        }
+        socket.lastDamage = data.truck.wearSum;
+
+        // 4. Détection fin de mission avec BONUS DE RANG
         if (socket.inJob && !data.job.cargoLoaded) {
-            const prime = 2500;
+            let prime = 2500; 
+            if (driver.experience >= 5000) {
+                prime = 6000; // Rang Légende
+            } else if (driver.experience >= 2000) {
+                prime = 4000; // Rang Expert
+            }
+
             const detail = `${data.job.cargo} vers ${data.job.destinationCity}`;
             driver.wallet += prime;
             driver.lastJob = detail;
-            io.emit('receive_flash', `🚚 MISSION RÉUSSIE : ${driver.name} a livré ${detail} (+${prime}€)`);
+            io.emit('receive_flash', `🚚 MISSION RÉUSSIE : ${driver.name} (+${prime}€) - ${detail}`);
         }
         socket.inJob = data.job.cargoLoaded;
 
