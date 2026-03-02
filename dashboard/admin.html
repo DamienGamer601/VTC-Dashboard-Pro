@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin VTC</title>
+    <style>
+        body { background: #080a0f; color: white; font-family: sans-serif; padding: 20px; }
+        .card { background: #11141d; border: 1px solid #00d1ff; padding: 20px; border-radius: 10px; }
+        .btn-flash { background: red; color: white; padding: 10px; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🛠️ PANEL ADMIN</h1>
+        <div id="auth">
+            <input type="password" id="pass" placeholder="Code Secret">
+            <button onclick="access()">Entrer</button>
+        </div>
+        <div id="content" style="display:none;">
+            <h3>📢 MESSAGE FLASH</h3>
+            <input type="text" id="msg" placeholder="Ton message...">
+            <button class="btn-flash" onclick="send()">ENVOYER À TOUS</button>
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        function access() {
+            if(document.getElementById('pass').value === "DAMIAN_VTC_2024") {
+                document.getElementById('auth').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            }
+        }
+        function send() {
+            const m = document.getElementById('msg').value;
+            socket.emit('admin_flash', m);
+            alert("Envoyé !");
+        }
+    </script>
+</body>
+</html>
