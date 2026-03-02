@@ -3,68 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTC Dashboard - Live</title>
+    <title>VTC Pro Dashboard - Live</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #080a0f; --card: #11141d; --accent: #00d1ff; --text: #e6edf3; }
-        body { background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; margin: 0; }
+        :root { 
+            --bg: #05070a; 
+            --card: rgba(17, 20, 29, 0.9); 
+            --accent: #00d1ff; 
+            --danger: #ff4444;
+            --success: #00ff88;
+            --text: #e6edf3;
+        }
+
+        body { 
+            background: var(--bg);
+            background-image: linear-gradient(rgba(0, 209, 255, 0.03) 1px, transparent 1px), 
+                              linear-gradient(90deg, rgba(0, 209, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            color: var(--text); 
+            font-family: 'Rajdhani', sans-serif; 
+            margin: 0;
+            overflow-x: hidden;
+        }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #11141d 0%, #080a0f 100%); z-index: 1000; display: flex; justify-content: center; align-items: center; }
-        .login-box { display: flex; flex-direction: column; align-items: center; padding: 40px; border: 2px solid var(--accent); border-radius: 15px; background: rgba(17, 20, 29, 0.95); animation: fadeIn 1.2s ease-out; }
-        .main-container { display: grid; grid-template-columns: 300px 1fr 300px; gap: 20px; padding: 20px; }
-        .widget { background: var(--card); border-radius: 12px; padding: 20px; border: 1px solid #252a37; text-align: center; }
-        .speed-value { font-family: 'Orbitron'; font-size: 5rem; color: var(--accent); }
+
+        /* Écran de Connexion */
+        #login-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: radial-gradient(circle, #11141d 0%, #05070a 100%); 
+            z-index: 1000; display: flex; justify-content: center; align-items: center; 
+        }
+        .login-box { 
+            display: flex; flex-direction: column; align-items: center; padding: 40px; 
+            border: 2px solid var(--accent); border-radius: 15px; background: var(--card); 
+            box-shadow: 0 0 30px rgba(0, 209, 255, 0.2); animation: fadeIn 1.2s ease-out; 
+        }
+
+        /* Layout */
+        .main-container { 
+            display: grid; grid-template-columns: 320px 1fr 320px; gap: 25px; 
+            padding: 25px; max-width: 1600px; margin: auto; 
+        }
+
+        .widget { 
+            background: var(--card); border-radius: 12px; padding: 20px; 
+            border: 1px solid rgba(0, 209, 255, 0.2); backdrop-filter: blur(10px);
+            text-align: center; transition: 0.3s;
+        }
+
+        /* Vitesse */
+        .speed-value { font-family: 'Orbitron'; font-size: 6rem; color: var(--accent); line-height: 1; }
+        
+        /* Jauges */
+        .progress-container { width: 100%; background: #1a1f2b; border-radius: 5px; height: 12px; margin-top: 15px; overflow: hidden; }
+        .progress-bar { height: 100%; width: 0%; transition: width 0.5s ease; }
+
+        /* Alerte Flash */
+        #flash-zone {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 9999; width: 80%; max-width: 600px;
+        }
+        .flash-msg {
+            background: var(--danger); color: white; padding: 20px; border-radius: 8px;
+            font-weight: bold; text-align: center; border: 2px solid white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: fadeIn 0.3s;
+        }
     </style>
 </head>
 <body>
+
+    <div id="flash-zone"></div>
+
     <div id="login-overlay">
         <div class="login-box">
             <img src="logo.png" style="width: 220px; margin-bottom: 25px; filter: drop-shadow(0 0 10px var(--accent));">
-            <h1 style="font-family:'Orbitron'; color:var(--accent);">ACCÈS CHAUFFEUR</h1>
-            <input type="text" id="username-input" placeholder="Pseudo..." style="padding:15px; border-radius:8px; text-align:center; margin-bottom: 15px;">
-            <button onclick="login()" style="padding:12px 40px; background:var(--accent); cursor:pointer; font-family:'Orbitron'; font-weight:bold;">LANCER LE MOTEUR</button>
+            <h1 style="font-family:'Orbitron'; color:var(--accent); margin-top:0;">ACCÈS CHAUFFEUR</h1>
+            <input type="text" id="username-input" placeholder="Pseudo..." style="padding:15px; border-radius:8px; border:1px solid #333; background:#0d1117; color:white; width:250px; text-align:center; margin-bottom: 15px;">
+            <button onclick="login()" style="padding:12px 40px; background:var(--accent); color:black; border:none; border-radius:8px; font-weight:bold; font-family:'Orbitron'; cursor:pointer; text-transform: uppercase;">Démarrer</button>
         </div>
     </div>
 
     <div class="main-container">
         <div class="side">
-            <div class="widget"><h3>CARBURANT</h3><div id="fuel">-- L</div></div>
+            <div class="widget">
+                <h3>⛽ CARBURANT</h3>
+                <div id="fuel" style="font-size: 2.5rem;">-- L</div>
+                <div class="progress-container">
+                    <div id="fuel-bar" class="progress-bar" style="background: var(--success);"></div>
+                </div>
+            </div>
         </div>
+
         <div class="center">
-            <div style="text-align:center; color:var(--accent);">UNITÉ : <span id="current-driver">---</span></div>
-            <div class="widget"><div class="speed-value" id="speed">0</div>KM/H</div>
+            <div style="text-align:center; margin-bottom:15px; color:var(--accent); font-family:'Orbitron';">
+                UNITÉ ACTIVE : <span id="current-driver">---</span>
+            </div>
+            <div class="widget">
+                <div class="speed-value" id="speed">0</div>
+                <div style="letter-spacing: 10px; font-weight: bold; color: gray;">KM/H</div>
+            </div>
         </div>
+
         <div class="side">
-            <div class="widget"><h3>DÉGÂTS</h3><div id="damage" style="color:red;">0%</div></div>
-            <button onclick="logout()" style="margin-top:20px; width:100%; background:none; color:gray; cursor:pointer;">Déconnexion</button>
+            <div class="widget">
+                <h3>🔧 ÉTAT DU CAMION</h3>
+                <div id="damage" style="font-size: 2.5rem; color: var(--danger);">0%</div>
+                <div class="progress-container">
+                    <div id="damage-bar" class="progress-bar" style="background: var(--danger);"></div>
+                </div>
+            </div>
+            <button onclick="logout()" style="margin-top: 25px; width: 100%; background: none; border: 1px dashed #444; color: gray; cursor: pointer; padding: 10px; border-radius: 5px;">✖ Déconnexion</button>
         </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
+
         window.onload = () => {
             const name = localStorage.getItem('driverName');
-            if(name) { document.getElementById('login-overlay').style.display = 'none'; document.getElementById('current-driver').innerText = name.toUpperCase(); }
+            if(name) {
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('current-driver').innerText = name.toUpperCase();
+            }
         };
-        function login() { 
+
+        function login() {
             const name = document.getElementById('username-input').value;
-            if(name.length > 2) { localStorage.setItem('driverName', name); location.reload(); }
+            if(name.trim().length > 2) {
+                localStorage.setItem('driverName', name.trim());
+                location.reload();
+            }
         }
-        function logout() { localStorage.removeItem('driverName'); location.reload(); }
+
+        function logout() {
+            localStorage.removeItem('driverName');
+            location.reload();
+        }
 
         socket.on('update_dashboard', (data) => {
-            document.getElementById('speed').innerText = data.truck.speed;
-            document.getElementById('fuel').innerText = Math.round(data.truck.fuel) + " L";
-            document.getElementById('damage').innerText = Math.round(data.truck.wearSum) + "%";
+            // Vitesse
+            const speed = data.truck.speed;
+            const speedEl = document.getElementById('speed');
+            speedEl.innerText = speed;
+            speedEl.style.color = speed > 90 ? 'var(--danger)' : 'var(--accent)';
+
+            // Carburant (Estimation basique du % si fuelCapacity n'est pas dispo, sinon diviser)
+            const fuel = data.truck.fuel;
+            document.getElementById('fuel').innerText = Math.round(fuel) + " L";
+            document.getElementById('fuel-bar').style.width = "75%"; // À affiner selon le camion
+
+            // Dégâts
+            const wear = data.truck.wearSum || 0;
+            document.getElementById('damage').innerText = Math.round(wear) + "%";
+            document.getElementById('damage-bar').style.width = wear + "%";
         });
 
         socket.on('receive_flash', (msg) => {
-            const flash = document.createElement('div');
-            flash.style = "position:fixed; top:20px; left:50%; transform:translateX(-50%); background:red; color:white; padding:20px; font-weight:bold; z-index:9999;";
-            flash.innerText = "⚠️ ALERTE ADMIN : " + msg;
-            document.body.appendChild(flash);
-            setTimeout(() => flash.remove(), 10000);
+            const zone = document.getElementById('flash-zone');
+            const el = document.createElement('div');
+            el.className = "flash-msg";
+            el.innerHTML = `⚠️ ALERTE ADMIN : ${msg}`;
+            zone.appendChild(el);
+            setTimeout(() => el.remove(), 10000);
         });
     </script>
 </body>
