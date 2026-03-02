@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charte Conducteur - VTC Ops</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --bg: #020617; --card: #1e293b; --accent: #3b82f6; 
+            --text: #f8fafc; --muted: #94a3b8; --border: #334155;
+            --success: #10b981;
+        }
+
+        body { 
+            background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
+            margin: 0; padding: 40px 20px;
+            background-image: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+        }
+
+        .rules-container { 
+            max-width: 700px; width: 100%; background: rgba(30, 41, 59, 0.6); 
+            padding: 50px; border-radius: 32px; border: 1px solid var(--border); 
+            backdrop-filter: blur(10px); box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        header { text-align: center; margin-bottom: 40px; }
+        header h1 { 
+            font-family: 'JetBrains Mono'; font-size: 1.8rem; letter-spacing: 4px; 
+            margin: 10px 0; font-weight: 900; 
+        }
+        .subtitle { font-size: 0.8rem; color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+
+        .rules-content { margin-bottom: 40px; }
+
+        .rule-item { 
+            margin-bottom: 30px; position: relative; padding-left: 30px;
+            transition: 0.3s;
+        }
+        .rule-item::before {
+            content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+            width: 4px; background: var(--border); border-radius: 2px; transition: 0.3s;
+        }
+        .rule-item:hover::before { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .rule-title { 
+            display: block; font-family: 'JetBrains Mono'; font-size: 0.75rem; 
+            color: var(--accent); margin-bottom: 8px; font-weight: 700;
+        }
+        .rule-text { font-size: 0.95rem; line-height: 1.6; color: #cbd5e1; }
+
+        .accept-section { 
+            background: rgba(15, 23, 42, 0.4); padding: 30px; border-radius: 20px;
+            border: 1px solid var(--border); text-align: center;
+        }
+
+        .checkbox-wrapper {
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            cursor: pointer; margin-bottom: 25px; user-select: none;
+        }
+
+        input[type="checkbox"] {
+            width: 22px; height: 22px; cursor: pointer; accent-color: var(--accent);
+        }
+
+        .btn-register { 
+            display: block; width: 100%; padding: 18px; 
+            background: #475569; color: rgba(255,255,255,0.4); 
+            text-decoration: none; border-radius: 14px; font-weight: 900; 
+            font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none; border: none; text-align: center;
+        }
+
+        .btn-active { 
+            background: var(--accent) !important; color: white !important; 
+            pointer-events: auto !important; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+            cursor: pointer;
+        }
+        .btn-active:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(59, 130, 246, 0.4); }
+
+        footer { text-align: center; margin-top: 30px; color: var(--muted); font-size: 0.7rem; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+
+    <div class="rules-container">
+        <header>
+            <div class="subtitle">Protocole Interne</div>
+            <h1>CODE DE <span style="color:white">CONDUITE</span></h1>
+        </header>
+        
+        <div class="rules-content">
+            <div class="rule-item">
+                <span class="rule-title">SECTION 01 // OPÉRATIONS ROUTIÈRES</span>
+                <p class="rule-text">Le respect du code de la route est non-négociable. La conduite dangereuse (arcade, ramming) impactera votre prime de fin de mois.</p>
+            </div>
+
+            <div class="rule-item">
+                <span class="rule-title">SECTION 02 // MAINTENANCE FLOTTE</span>
+                <p class="rule-text">Tout véhicule présentant plus de 5% de dégâts doit être immobilisé pour maintenance immédiate au garage le plus proche.</p>
+            </div>
+
+            <div class="rule-item">
+                <span class="rule-title">SECTION 03 // DISCIPLINE RÉSEAU</span>
+                <p class="rule-text">Le port du tag de l'entreprise et une attitude courtoise sur la radio CB sont obligatoires lors de toutes vos missions officielles.</p>
+            </div>
+
+            <div class="rule-item">
+                <span class="rule-title">SECTION 04 // ÉTHIQUE COMMUNAUTAIRE</span>
+                <p class="rule-text">La VTC Ops repose sur le respect mutuel. Aucun comportement toxique ne sera toléré sur nos outils de communication (Discord/Radio).</p>
+            </div>
+        </div>
+
+        <div class="accept-section">
+            <label class="checkbox-wrapper">
+                <input type="checkbox" id="check-rules">
+                <span style="font-size: 0.85rem; font-weight: 600;">Je jure de respecter la charte de la VTC Ops</span>
+            </label>
+            
+            <a href="register.html" id="next-btn" class="btn-register">Initialiser l'Enrôlement</a>
+        </div>
+
+        <footer>VTC OPS MANAGEMENT SYSTEM — DOCUMENT CLASSÉ CONFIDENTIEL</footer>
+    </div>
+
+    <script>
+        const checkbox = document.getElementById('check-rules');
+        const btn = document.getElementById('next-btn');
+
+        checkbox.addEventListener('change', () => {
+            if(checkbox.checked) {
+                btn.classList.add('btn-active');
+                sessionStorage.setItem('rulesAccepted', 'true');
+            } else {
+                btn.classList.remove('btn-active');
+                sessionStorage.removeItem('rulesAccepted');
+            }
+        });
+    </script>
+</body>
+</html>

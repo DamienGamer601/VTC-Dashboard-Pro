@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mes Trophées - VTC Ops</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #020617; --card: #1e293b; --accent: #3b82f6; --text: #f8fafc; }
+        
+        /* On ajuste le body pour la navbar */
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding-bottom: 40px; }
+        .content { padding: 40px; }
+        
+        .awards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 30px; }
+        
+        .award-card { 
+            background: var(--card); border-radius: 20px; padding: 25px; text-align: center;
+            border: 2px solid #334155; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            filter: grayscale(1); opacity: 0.5; transform: scale(0.95);
+        }
+        
+        /* Animation quand le trophée est débloqué */
+        .award-card.unlocked { 
+            filter: grayscale(0); opacity: 1; border-color: var(--accent);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);
+            transform: scale(1);
+        }
+
+        .award-card.unlocked:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(59, 130, 246, 0.25);
+        }
+
+        .award-icon { font-size: 3rem; margin-bottom: 15px; display: block; }
+        .award-title { font-weight: 900; font-size: 1.1rem; margin-bottom: 5px; }
+        .award-desc { font-size: 0.8rem; color: #94a3b8; line-height: 1.4; }
+        .xp-bonus { font-family: 'JetBrains Mono'; color: #f59e0b; font-size: 0.7rem; margin-top: 10px; display: block; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="content">
+        <h1 style="font-family: 'JetBrains Mono'; margin-top: 0;">🏆 SALON DES <span style="color:var(--accent)">TROPHÉES</span></h1>
+        <p style="color: #94a3b8;">Relevez des défis pour décorer votre profil de chauffeur et prouver votre valeur.</p>
+
+        <div id="awards-list" class="awards-grid">
+            </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="nav.js"></script> <script>
+        const socket = io();
+        const myName = localStorage.getItem('driverName');
+
+        if (!myName) window.location.href = "login.html";
+
+        // Demander l'état des trophées dès la connexion
+        socket.emit('get_awards_status', myName);
+
+        socket.on('receive_awards', (data) => {
+            const container = document.getElementById('awards-list');
+            
+            if (!data.all || data.all.length === 0) {
+                container.innerHTML = `<p style="color:var(--muted)">Aucun trophée disponible pour le moment.</p>`;
+                return;
+            }
+
+            container.innerHTML = data.all.map(a => {
+                const isUnlocked = data.mine.includes(a.id);
+                return `
+                    <div class="award-card ${isUnlocked ? 'unlocked' : ''}">
+                        <span class="award-icon">${a.icon}</span>
+                        <div class="award-title">${a.name}</div>
+                        <div class="award-desc">${a.desc}</div>
+                        <span class="xp-bonus">${isUnlocked ? '✅ DÉBLOQUÉ' : '+ ' + a.xp + ' XP BONUS'}</span>
+                    </div>
+                `;
+            }).join('');
+        });
+    </script>
+</body>
+</html>

@@ -3,21 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maintenance en cours - VTC Pro</title>
+    <title>Maintenance Technique - VTC Ops</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
-        .box { padding: 40px; border: 2px solid #3b82f6; border-radius: 20px; background: #1e293b; }
-        h1 { color: #3b82f6; margin-bottom: 10px; }
-        p { color: #94a3b8; }
-        .spinner { border: 4px solid rgba(255, 255, 255, 0.1); border-left-color: #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        :root { 
+            --bg: #020617; --card: #1e293b; --accent: #f59e0b; 
+            --text: #f8fafc; --muted: #94a3b8; --border: #334155;
+        }
+
+        body { 
+            background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
+            margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Ambiance d'atelier (Gyrophare Ambre) */
+        .ambient-light {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.08) 0%, rgba(2, 6, 23, 0) 70%);
+            animation: pulseLight 4s ease-in-out infinite;
+            z-index: 1;
+        }
+
+        .container { 
+            text-align: center; padding: 40px; z-index: 10; 
+            background: rgba(30, 41, 59, 0.4); border: 1px solid var(--border);
+            border-radius: 40px; backdrop-filter: blur(10px);
+            max-width: 600px;
+        }
+
+        .warning-icon { 
+            font-size: 4rem; margin-bottom: 25px; display: block; 
+            filter: drop-shadow(0 0 15px var(--accent));
+        }
+        
+        h1 { 
+            font-family: 'JetBrains Mono'; font-size: 2.2rem; letter-spacing: 6px; 
+            margin: 10px 0; color: var(--accent); font-weight: 900;
+        }
+
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 8px 16px; border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px; color: var(--accent); font-family: 'JetBrains Mono';
+            font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px;
+            background: rgba(245, 158, 11, 0.1); margin-bottom: 20px;
+        }
+
+        .status-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: blink 1s infinite; }
+
+        p { color: var(--muted); font-size: 1rem; line-height: 1.7; margin: 20px 0; }
+
+        /* Loader Technique */
+        .loader-box {
+            display: flex; justify-content: center; gap: 8px; margin: 30px 0;
+        }
+        .bar { width: 4px; height: 20px; background: var(--accent); opacity: 0.3; animation: barGrow 1.2s infinite ease-in-out; }
+        .bar:nth-child(2) { animation-delay: 0.2s; }
+        .bar:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes pulseLight { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes barGrow { 0%, 100% { transform: scaleY(1); opacity: 0.3; } 50% { transform: scaleY(2); opacity: 1; } }
+
+        .footer { 
+            position: absolute; bottom: 30px; width: 100%; text-align: center;
+            color: #475569; font-family: 'JetBrains Mono'; font-size: 0.7rem; letter-spacing: 2px;
+        }
     </style>
 </head>
 <body>
-    <div class="box">
-        <div class="spinner"></div>
-        <h1>TRAVAUX SUR LA FLOTTE</h1>
-        <p>Le Dispatch effectue une mise à jour des serveurs.<br>Revenez dans quelques instants.</p>
+
+    <div class="ambient-light"></div>
+
+    <div class="container">
+        <span class="warning-icon">🚧</span>
+        
+        <div class="status-badge">
+            <div class="status-dot"></div>
+            Maintenance en cours
+        </div>
+
+        <h1>SYSTEM <span style="color: white">OFFLINE</span></h1>
+        
+        <p>Le centre de dispatching subit actuellement une révision technique. Nous calibrons les nouveaux outils télémétriques pour optimiser vos prochains convois.</p>
+        
+        <div class="loader-box">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+        
+        <div style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--border); padding-top: 20px;">
+            RETOUR ESTIMÉ : <span style="color: white; letter-spacing: 1px;">DANS QUELQUES MINUTES</span>
+        </div>
     </div>
+
+    <div class="footer">TERMINAL CENTRAL // OPS-MGMT-V3</div>
+
 </body>
 </html>

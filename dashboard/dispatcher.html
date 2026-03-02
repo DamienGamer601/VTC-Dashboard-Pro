@@ -3,60 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dispatcher Logistique - VTC Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Dispatcher Hub - VTC Ops</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #f8fafc; --sidebar: #0f172a; --accent: #2563eb; --card: #ffffff; --text-muted: #64748b; --border: #e2e8f0; }
-        body { background: var(--bg); font-family: 'Inter', sans-serif; display: flex; justify-content: center; padding: 40px; margin: 0; }
-        .dispatch-card { background: var(--card); border-radius: 12px; padding: 40px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05); width: 100%; max-width: 450px; }
-        h1 { font-size: 1.1rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 30px; text-align: center; }
-        label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
-        input { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 6px; border: 1px solid var(--border); box-sizing: border-box; font-size: 1rem; }
-        button { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #1d4ed8; }
-        .footer { margin-top: 25px; text-align: center; font-size: 0.8rem; color: #94a3b8; }
+        :root { 
+            --bg: #020617; --card: #0f172a; --accent: #3b82f6; 
+            --text: #f8fafc; --muted: #64748b; --border: #1e293b;
+            --danger: #ef4444; --success: #10b981; --warning: #f59e0b;
+        }
+
+        body { 
+            background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
+            margin: 0; padding: 20px; overflow-x: hidden;
+            background-image: radial-gradient(circle at 20% 20%, #0f172a 0%, #020617 100%);
+        }
+        
+        header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px 30px; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px);
+            border-radius: 16px; border: 1px solid var(--border); margin-bottom: 25px;
+        }
+
+        .header-title { display: flex; align-items: center; gap: 15px; }
+        .header-title h1 { font-family: 'JetBrains Mono'; font-size: 1.2rem; margin: 0; letter-spacing: 2px; font-weight: 800; }
+
+        .live-status { display: flex; align-items: center; gap: 12px; font-size: 0.75rem; font-weight: 800; color: var(--muted); }
+        .pulse-dot { width: 10px; height: 10px; background: var(--danger); border-radius: 50%; box-shadow: 0 0 10px var(--danger); animation: blink 1.5s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
+
+        .dispatcher-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+            gap: 20px; 
+        }
+        
+        .driver-card { 
+            background: var(--card); border: 1px solid var(--border); border-radius: 20px; 
+            padding: 22px; position: relative; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .driver-card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); }
+
+        /* Alerte Dégâts Critiques */
+        .driver-card.emergency { 
+            border-color: var(--danger); 
+            background: linear-gradient(135deg, #0f172a 0%, rgba(239, 68, 68, 0.05) 100%);
+            animation: pulse-red 2s infinite; 
+        }
+        @keyframes pulse-red { 0%, 100% { border-color: var(--danger); } 50% { border-color: #7f1d1d; } }
+
+        .card-top { display: flex; justify-content: space-between; margin-bottom: 18px; }
+        .driver-id { font-weight: 800; font-size: 1.1rem; letter-spacing: -0.5px; }
+        .truck-info { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+        
+        .badge { 
+            font-size: 0.6rem; padding: 4px 10px; border-radius: 6px; font-weight: 900; 
+            text-transform: uppercase; height: fit-content;
+        }
+        .badge-transit { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .badge-parked { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.2); }
+
+        .telemetry { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px; margin-bottom: 18px; }
+        .data-point { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 8px; }
+        .data-point:last-child { margin-bottom: 0; }
+        .data-label { color: var(--muted); font-weight: 600; }
+        .data-val { font-family: 'JetBrains Mono'; color: var(--text); }
+
+        .delivery-tracking { margin-top: 15px; }
+        .progress-meta { display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--muted); margin-bottom: 6px; font-weight: 700; }
+        .bar-bg { height: 8px; background: #1e293b; border-radius: 10px; overflow: hidden; }
+        .bar-fill { height: 100%; background: var(--accent); border-radius: 10px; transition: width 1.5s ease; box-shadow: 0 0 10px var(--accent); }
+
+        .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .btn-ctrl { 
+            background: #1e293b; border: 1px solid var(--border); color: var(--text); 
+            padding: 10px; border-radius: 10px; font-size: 0.7rem; font-weight: 800; 
+            cursor: pointer; transition: 0.2s; text-transform: uppercase;
+        }
+        .btn-ctrl:hover { background: var(--accent); border-color: var(--accent); color: white; }
+        .btn-msg { border-color: var(--accent); color: var(--accent); background: transparent; }
     </style>
 </head>
 <body>
-    <div class="dispatch-card">
-        <h1>🛰️ Attribution de Mission</h1>
-        
-        <label>Clé Dispatcher</label>
-        <input type="password" id="d-pass" placeholder="Code secret...">
 
-        <label>Identifiant Chauffeur</label>
-        <input type="text" id="d-target" placeholder="Ex: Damian_77">
-
-        <label>Ville de Destination</label>
-        <input type="text" id="d-city" placeholder="Ex: Marseille, Lyon...">
-
-        <label>Type de Cargaison</label>
-        <input type="text" id="d-cargo" placeholder="Ex: Produits Frais, Carburant...">
-
-        <button onclick="sendDispatch()">ÉMETTRE L'ORDRE DE ROUTE</button>
-        
-        <div class="footer">
-            Système Central de Logistique VTC Pro
+    <header>
+        <div class="header-title">
+            <img src="logo.png" style="height: 32px;" onerror="this.style.display='none'">
+            <h1>COMMAND <span style="color:var(--accent)">CENTER</span></h1>
         </div>
-    </div>
+        <div class="live-status">
+            <div class="pulse-dot"></div> FLOTTE EN DIRECT
+            <span style="color: var(--border); margin: 0 10px;">|</span>
+            <span id="unit-count">0 UNITÉS</span>
+        </div>
+    </header>
+
+    <div class="dispatcher-grid" id="fleet-grid">
+        </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        function sendDispatch() {
-            const data = {
-                target: document.getElementById('d-target').value,
-                city: document.getElementById('d-city').value,
-                cargo: document.getElementById('d-cargo').value,
-                secret: document.getElementById('d-pass').value
-            };
-            if(data.target && data.city && data.secret) {
-                socket.emit('admin_dispatch_job', data);
-                alert("Mission assignée avec succès !");
-                document.getElementById('d-target').value = "";
-                document.getElementById('d-city').value = "";
-                document.getElementById('d-cargo').value = "";
+
+        socket.on('update_leaderboard', (drivers) => {
+            const grid = document.getElementById('fleet-grid');
+            grid.innerHTML = "";
+            let onlineCount = 0;
+
+            drivers.forEach(d => {
+                // Temps réel : On considère online si ping < 2 min
+                const isOnline = d.lastUpdate && (new Date() - new Date(d.lastUpdate) < 120000);
+                if (!isOnline) return;
+                onlineCount++;
+
+                const damage = d.truck?.wearSum || 0;
+                const isEmergency = damage > 15;
+                const speed = Math.round(d.truck?.speed || 0);
+                
+                const job = d.job;
+                const progress = job?.plannedDistanceKm > 0 
+                    ? Math.min(100, Math.max(0, ((job.plannedDistanceKm - job.remainingDistanceKm) / job.plannedDistanceKm) * 100))
+                    : 0;
+
+                const card = document.createElement('div');
+                card.className = `driver-card ${isEmergency ? 'emergency' : ''}`;
+                card.innerHTML = `
+                    <div class="card-top">
+                        <div>
+                            <div class="driver-id">${d.name}</div>
+                            <div class="truck-info">${d.truck?.brand || 'Gamme'} ${d.truck?.model || 'Inconnue'}</div>
+                        </div>
+                        <div class="badge ${speed > 2 ? 'badge-transit' : 'badge-parked'}">
+                            ${speed > 2 ? 'En Transit' : 'Stationné'}
+                        </div>
+                    </div>
+
+                    <div class="telemetry">
+                        <div class="data-point">
+                            <span class="data-label">Vitesse Actuelle</span>
+                            <span class="data-val" style="color:${speed > 90 ? 'var(--danger)' : 'var(--text)'}">${speed} KM/H</span>
+                        </div>
+                        <div class="data-point">
+                            <span class="data-label">État Châssis</span>
+                            <span class="data-val" style="color:${damage > 10 ? 'var(--danger)' : 'var(--success)'}">${damage.toFixed(1)}%</span>
+                        </div>
+                        <div class="data-point">
+                            <span class="data-label">Cargaison</span>
+                            <span class="data-val">${job?.cargo || 'Aucune'}</span>
+                        </div>
+                    </div>
+
+                    <div class="delivery-tracking">
+                        <div class="progress-meta">
+                            <span>DEST: ${job?.destinationCity || '---'}</span>
+                            <span>${Math.round(progress)}%</span>
+                        </div>
+                        <div class="bar-bg">
+                            <div class="bar-fill" style="width: ${progress}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="actions-grid">
+                        <button class="btn-ctrl" onclick="pingDriver('${d.name}')">🔔 PING</button>
+                        <button class="btn-ctrl btn-msg" onclick="msgDriver('${d.name}')">💬 MESSAGE</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            document.getElementById('unit-count').innerText = `${onlineCount} UNITÉS`;
+        });
+
+        function pingDriver(name) {
+            socket.emit('send_private_flash', { 
+                name, 
+                message: "⚠️ DISPATCHER : Alerte radio immédiate !", 
+                type: "warning" 
+            });
+            showToast(`Ping envoyé à ${name}`);
+        }
+
+        function msgDriver(name) {
+            const msg = prompt(`Envoyer un message prioritaire à ${name} :`);
+            if(msg) {
+                socket.emit('send_private_flash', { 
+                    name, 
+                    message: "📩 MESSAGE DISPATCH : " + msg, 
+                    type: "info" 
+                });
             }
+        }
+
+        function showToast(text) {
+            // Optionnel : Ajouter un système de notification toast ici
+            console.log(text);
         }
     </script>
 </body>

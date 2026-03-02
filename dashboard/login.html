@@ -3,131 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion - Fleet Manager VTC</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <title>Identification - VTC Ops</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --bg: #0f172a; --card: #1e293b; --accent: #3b82f6; 
+            --bg: #020617; --card: #1e293b; --accent: #3b82f6; 
             --text: #f8fafc; --muted: #94a3b8; --border: #334155;
+            --success: #10b981; --danger: #ef4444;
         }
 
         body { 
-            background: var(--bg); 
-            color: var(--text); 
-            font-family: 'Inter', sans-serif; 
-            margin: 0; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh;
+            background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
+            margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh;
+            overflow: hidden;
         }
 
-        .login-card {
-            background: var(--card);
-            padding: 40px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            animation: fadeIn 0.6s ease-out;
+        /* Effet de fond "Scanline" */
+        body::before {
+            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none;
         }
 
-        @keyframes fadeIn {
+        .login-card { 
+            background: rgba(30, 41, 59, 0.8); padding: 45px; border-radius: 32px; 
+            border: 1px solid var(--border); width: 100%; max-width: 400px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            text-align: center; backdrop-filter: blur(12px);
+            position: relative; z-index: 10;
+        }
+
+        .logo-box { margin-bottom: 35px; }
+        .logo-box h1 { 
+            font-family: 'JetBrains Mono'; font-size: 1.4rem; letter-spacing: 5px; 
+            margin: 15px 0 0 0; font-weight: 900;
+        }
+
+        .tabs { 
+            display: flex; gap: 8px; margin-bottom: 30px; 
+            background: rgba(0,0,0,0.3); padding: 6px; border-radius: 16px; 
+        }
+        .tab { 
+            flex: 1; padding: 12px; border-radius: 12px; cursor: pointer; 
+            font-size: 0.75rem; font-weight: 800; transition: 0.3s; color: var(--muted);
+            letter-spacing: 1px;
+        }
+        .tab.active { background: var(--accent); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+
+        .form-group { text-align: left; margin-bottom: 22px; }
+        label { 
+            display: block; font-size: 0.65rem; font-weight: 800; 
+            text-transform: uppercase; color: var(--muted); margin-bottom: 10px; 
+            letter-spacing: 1.5px; 
+        }
+        
+        input { 
+            width: 100%; padding: 16px; background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border); 
+            border-radius: 14px; color: white; font-family: 'JetBrains Mono'; box-sizing: border-box;
+            transition: 0.2s; font-size: 0.9rem;
+        }
+        input:focus { 
+            outline: none; border-color: var(--accent); 
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); background: #0f172a;
+        }
+
+        .btn-action { 
+            width: 100%; padding: 18px; background: var(--accent); color: white; 
+            border: none; border-radius: 14px; font-weight: 900; cursor: pointer; 
+            text-transform: uppercase; letter-spacing: 2px; margin-top: 10px;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 0.85rem;
+        }
+        .btn-action:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .btn-action:active { transform: translateY(0); }
+
+        #error-msg { 
+            background: rgba(239, 68, 68, 0.1); color: var(--danger); 
+            padding: 12px; border-radius: 10px; font-size: 0.8rem; 
+            margin-top: 20px; display: none; font-weight: 700; border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* Animation d'entrée */
+        .login-card { animation: slideIn 0.6s ease-out; }
+        @keyframes slideIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 10px; letter-spacing: -0.5px; }
-        p { color: var(--muted); font-size: 0.9rem; margin-bottom: 30px; }
-
-        .input-group { text-align: left; margin-bottom: 20px; }
-        label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
-        
-        input {
-            width: 100%;
-            padding: 14px;
-            background: #0f172a;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: white;
-            font-size: 1rem;
-            font-family: 'Inter';
-            box-sizing: border-box;
-            transition: border-color 0.2s;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-        }
-
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-            margin-top: 10px;
-        }
-
-        .btn-login:hover { background: #2563eb; }
-        .btn-login:active { transform: scale(0.98); }
-
-        .footer-note { margin-top: 25px; font-size: 0.75rem; color: var(--muted); }
     </style>
 </head>
 <body>
 
     <div class="login-card">
-        <h1>Fleet Manager v4</h1>
-        <p>Connectez-vous pour accéder à votre dashboard.</p>
-
-        <div class="input-group">
-            <label for="username">Nom du Chauffeur</label>
-            <input type="text" id="username" placeholder="Ex: Damian_VTC" autocomplete="off">
+        <div class="logo-box">
+            <div style="font-size: 3rem;">🛰️</div>
+            <h1>VTC OPS <span style="color: var(--accent)">PORTAL</span></h1>
+            <p style="font-size: 0.6rem; color: var(--muted); letter-spacing: 1px; margin-top: 5px;">CENTRAL COMMAND v3.0</p>
         </div>
 
-        <button class="btn-login" onclick="login()">SE CONNECTER</button>
-
-        <div class="footer-note">
-            En vous connectant, vos statistiques de route seront synchronisées en temps réel avec le Dispatch.
+        <div class="tabs">
+            <div id="tab-login" class="tab active" onclick="switchTab('login')">CONNEXION</div>
+            <div id="tab-register" class="tab" onclick="switchTab('register')">INSCRIPTION</div>
         </div>
+
+        <div id="login-form">
+            <div class="form-group">
+                <label>ID Chauffeur</label>
+                <input type="text" id="login-name" placeholder="Nom d'utilisateur" spellcheck="false">
+            </div>
+            <div class="form-group">
+                <label>Clé de Cryptage</label>
+                <input type="password" id="login-pass" placeholder="Mot de passe">
+            </div>
+            <button class="btn-action" onclick="handleAuth('login')">Initialiser Session</button>
+        </div>
+
+        <div id="register-form" style="display: none;">
+            <div class="form-group">
+                <label>Identifiant Souhaité</label>
+                <input type="text" id="reg-name" placeholder="ex: Damian_Trucker" spellcheck="false">
+            </div>
+            <div class="form-group">
+                <label>Nouveau Code</label>
+                <input type="password" id="reg-pass" placeholder="••••••••">
+            </div>
+            <button class="btn-action" style="background: var(--success);" onclick="handleAuth('register')">Envoyer Candidature</button>
+            <p style="font-size: 0.65rem; color: var(--muted); margin-top: 15px; line-height: 1.4;">
+                🔒 Votre dossier sera audité par la direction avant l'octroi des accès.
+            </p>
+        </div>
+
+        <div id="error-msg"></div>
     </div>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
-        // Si déjà connecté, on redirige vers le dashboard
-        if (localStorage.getItem('vtcName')) {
-            window.location.href = "index.html";
+        const socket = io();
+
+        function switchTab(type) {
+            const isLogin = type === 'login';
+            document.getElementById('tab-login').classList.toggle('active', isLogin);
+            document.getElementById('tab-register').classList.toggle('active', !isLogin);
+            
+            document.getElementById('login-form').style.display = isLogin ? 'block' : 'none';
+            document.getElementById('register-form').style.display = isLogin ? 'none' : 'block';
+            document.getElementById('error-msg').style.display = 'none';
         }
 
-        function login() {
-            const name = document.getElementById('username').value.trim();
+        function handleAuth(type) {
+            const btn = event.target;
+            const originalText = btn.innerText;
             
-            if (name.length < 3) {
-                alert("Veuillez entrer un nom de chauffeur valide (minimum 3 caractères).");
+            // Petit effet de chargement
+            btn.innerText = "AUTHENTIFICATION...";
+            btn.disabled = true;
+
+            const name = document.getElementById(type === 'login' ? 'login-name' : 'reg-name').value;
+            const pass = document.getElementById(type === 'login' ? 'login-pass' : 'reg-pass').value;
+
+            if(!name || !pass) {
+                showError("Veuillez remplir tous les champs.");
+                resetBtn(btn, originalText);
                 return;
             }
 
-            // Sauvegarde du nom dans le navigateur
-            localStorage.setItem('vtcName', name);
+            socket.emit(type === 'login' ? 'auth_login' : 'auth_register', { name, pass });
             
-            // Redirection vers le tableau de bord
-            window.location.href = "index.html";
+            // Sécurité si pas de réponse rapide
+            setTimeout(() => resetBtn(btn, originalText), 2000);
         }
 
-        // Permet de valider avec la touche "Entrée"
-        document.getElementById('username').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                login();
-            }
+        function resetBtn(btn, text) {
+            btn.innerText = text;
+            btn.disabled = false;
+        }
+
+        function showError(msg) {
+            const errorEl = document.getElementById('error-msg');
+            errorEl.innerText = msg;
+            errorEl.style.display = 'block';
+        }
+
+        socket.on('auth_success', (userData) => {
+            localStorage.setItem('driverName', userData.name);
+            window.location.href = 'index.html';
+        });
+
+        socket.on('auth_error', (msg) => {
+            showError(msg);
+        });
+
+        socket.on('register_pending', () => {
+            alert("Requête transmise. Contactez un dispatcher pour validation.");
+            switchTab('login');
         });
     </script>
 </body>

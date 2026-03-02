@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Assurance Flotte - VTC Ops</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --bg: #020617; --card: #1e293b; --accent: #3b82f6; 
+            --success: #10b981; --border: #334155; --muted: #94a3b8;
+        }
+        
+        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; margin: 0; padding-bottom: 50px; }
+        
+        .container { padding: 60px 20px; max-width: 1000px; margin: 0 auto; text-align: center; }
+        
+        .insurance-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
+            gap: 30px; margin-top: 50px; 
+        }
+
+        .insurance-card { 
+            background: var(--card); border-radius: 30px; border: 1px solid var(--border);
+            padding: 40px; position: relative; overflow: hidden;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column;
+        }
+
+        .insurance-card:hover { transform: translateY(-10px); border-color: var(--accent); }
+
+        /* Carte Active Style */
+        .insurance-card.active { border: 2px solid var(--success); box-shadow: 0 0 30px rgba(16, 185, 129, 0.15); }
+
+        .status-badge { 
+            position: absolute; top: 20px; right: 20px;
+            background: var(--success); color: white; padding: 6px 15px; 
+            border-radius: 50px; font-size: 0.7rem; font-weight: 900; 
+            display: none; animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        .price-tag { font-size: 3.5rem; font-weight: 900; color: white; margin: 15px 0; font-family: 'JetBrains Mono'; }
+        .price-tag span { font-size: 1rem; color: var(--muted); }
+
+        .benefits { text-align: left; list-style: none; padding: 0; margin: 30px 0; flex-grow: 1; }
+        .benefits li { 
+            margin-bottom: 12px; font-size: 0.95rem; color: var(--muted); 
+            display: flex; align-items: center; gap: 10px;
+        }
+        .benefits li::before { content: "✓"; color: var(--success); font-weight: 900; }
+
+        .btn-buy { 
+            width: 100%; padding: 20px; border: none; border-radius: 18px; 
+            background: var(--accent); color: white; font-weight: 900; 
+            cursor: pointer; transition: 0.3s; font-size: 1rem;
+        }
+        .btn-buy:hover { background: #2563eb; transform: scale(1.02); }
+        .btn-buy:disabled { background: #334155; color: #64748b; cursor: not-allowed; transform: none; }
+
+        .header-section { margin-bottom: 40px; }
+        .header-section h1 { font-size: 2.5rem; font-weight: 900; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <script src="nav.js"></script>
+
+    <div class="container">
+        <div class="header-section">
+            <h1 style="font-family: 'JetBrains Mono';">🛡️ COURTAGE <span style="color:var(--accent)">VTC OPS</span></h1>
+            <p style="color: var(--muted); max-width: 600px; margin: 0 auto;">
+                Un accident est vite arrivé sur les routes de l'Europe. Choisissez la protection adaptée à votre rythme de conduite.
+            </p>
+        </div>
+
+        <div class="insurance-grid">
+            <div class="insurance-card" id="card-serenity">
+                <div id="active-tag" class="status-badge">CONTRAT ACTIF</div>
+                
+                <div style="text-align: left;">
+                    <span style="color: var(--accent); font-weight: 800; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px;">Standard</span>
+                    <h2 style="margin: 10px 0 0 0; font-size: 1.8rem;">SÉRÉNITÉ</h2>
+                </div>
+
+                <div class="price-tag">500 € <span>/ semaine</span></div>
+
+                <ul class="benefits">
+                    <li>Remboursement <b>80%</b> des réparations</li>
+                    <li>Remorquage gratuit au dépôt</li>
+                    <li>Couverture Pays-Bas & Allemagne</li>
+                    <li>Assistance Dispatch standard</li>
+                </ul>
+
+                <button class="btn-buy" id="buy-btn" onclick="buyInsurance('serenity', 500)">SOUSCRIRE AU CONTRAT</button>
+                <p id="expiry-text" style="font-size: 0.8rem; margin-top: 15px; color: var(--muted); height: 1em;"></p>
+            </div>
+
+            <div class="insurance-card" style="opacity: 0.6; border-style: dashed;">
+                <div style="text-align: left;">
+                    <span style="color: var(--gold, #f59e0b); font-weight: 800; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px;">Premium</span>
+                    <h2 style="margin: 10px 0 0 0; font-size: 1.8rem;">LÉGENDE</h2>
+                </div>
+                <div class="price-tag">1 200 € <span>/ semaine</span></div>
+                <ul class="benefits">
+                    <li>Remboursement <b>100%</b> des réparations</li>
+                    <li>Assurance cargaison incluse (0€ perte)</li>
+                    <li>Couverture Europe Entière (DLC)</li>
+                    <li>Priorité sur les missions urgentes</li>
+                </ul>
+                <button class="btn-buy" disabled>Bientôt disponible</button>
+            </div>
+        </div>
+        
+        <p style="margin-top: 50px; color: #475569; font-size: 0.75rem;">
+            *Le prélèvement est automatique chaque semaine. Toute annulation doit être transmise au dispatcher.
+        </p>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const myName = localStorage.getItem('driverName');
+
+        // Demander le statut actuel
+        socket.emit('get_insurance_status', myName);
+
+        socket.on('receive_insurance_status', (data) => {
+            const btn = document.getElementById('buy-btn');
+            const tag = document.getElementById('active-tag');
+            const expiry = document.getElementById('expiry-text');
+            const card = document.getElementById('card-serenity');
+
+            if(data.hasInsurance) {
+                btn.innerText = "COUVERTURE ACTIVE";
+                btn.disabled = true;
+                tag.style.display = "block";
+                card.classList.add('active');
+                expiry.innerText = `Échéance du contrat : ${new Date(data.expiry).toLocaleDateString()}`;
+            }
+        });
+
+        function buyInsurance(plan, price) {
+            if(confirm(`Voulez-vous souscrire au plan ${plan.toUpperCase()} pour ${price} € ?`)) {
+                socket.emit('buy_insurance', { name: myName, plan: plan });
+            }
+        }
+
+        socket.on('insurance_success', () => {
+            alert("Contrat signé ! Votre certificat d'assurance a été mis à jour.");
+            location.reload();
+        });
+
+        socket.on('insurance_error', (msg) => {
+            alert("Erreur : " + msg);
+        });
+    </script>
+</body>
+</html>

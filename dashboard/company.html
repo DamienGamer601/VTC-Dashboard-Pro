@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Bilan Financier - VTC Ops</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #020617; --card: #1e293b; --accent: #3b82f6; --success: #10b981; --danger: #ef4444; --border: #334155; }
+        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; margin: 0; padding-bottom: 50px; }
+        
+        .container { padding: 40px; max-width: 1200px; margin: 0 auto; }
+        .report-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px; }
+        .kpi-card { background: var(--card); padding: 30px; border-radius: 20px; text-align: center; border: 1px solid var(--border); }
+        .kpi-val { font-size: 2rem; font-weight: 900; display: block; margin-top: 10px; }
+        
+        .profit-positive { color: var(--success); text-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
+        .profit-negative { color: var(--danger); }
+
+        /* Nouveaux styles pour les listes détaillées */
+        .details-section { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 40px; }
+        .detail-card { background: var(--card); border-radius: 20px; border: 1px solid var(--border); padding: 20px; }
+        .detail-title { font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--accent); margin-bottom: 20px; display: block; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        td { padding: 12px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .label-muted { color: #94a3b8; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 style="font-family: 'JetBrains Mono'; margin-top: 0;">📊 BILAN FINANCIER <span id="month-name" style="color:var(--accent)">MENSUEL</span></h1>
+
+        <div class="report-grid">
+            <div class="kpi-card">
+                <span style="color: #94a3b8; font-size: 0.8rem;">REVENUS BRUTS</span>
+                <span class="kpi-val" id="rev-val">0 €</span>
+            </div>
+            <div class="kpi-card">
+                <span style="color: #94a3b8; font-size: 0.8rem;">DÉPENSES & PRIMES</span>
+                <span class="kpi-val" style="color: var(--danger);" id="exp-val">0 €</span>
+            </div>
+            <div class="kpi-card" style="background: rgba(59, 130, 246, 0.05); border-color: var(--accent);">
+                <span style="color: #94a3b8; font-size: 0.8rem;">BÉNÉFICE NET</span>
+                <span class="kpi-val" id="net-val">0 €</span>
+            </div>
+        </div>
+
+        <div class="details-section">
+            <div class="detail-card">
+                <span class="detail-title">📑 DERNIERS FLUX FINANCIERS</span>
+                <table id="last-tx-table">
+                    </table>
+            </div>
+
+            <div class="detail-card">
+                <span class="detail-title">🏆 CHAUFFEURS LES PLUS RENTABLES</span>
+                <table id="top-earners-table">
+                    </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="nav.js"></script>
+    <script>
+        const socket = io();
+        const monthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+        document.getElementById('month-name').innerText = monthNames[new Date().getMonth()].toUpperCase();
+
+        socket.emit('get_company_report');
+
+        socket.on('receive_company_report', (data) => {
+            // Stats principales
+            document.getElementById('rev-val').innerText = data.totalRevenue.toLocaleString() + " €";
+            document.getElementById('exp-val').innerText = "-" + data.totalExpenses.toLocaleString() + " €";
+            
+            const netEl = document.getElementById('net-val');
+            netEl.innerText = data.netProfit.toLocaleString() + " €";
+            netEl.className = "kpi-val " + (data.netProfit >= 0 ? "profit-positive" : "profit-negative");
+
+            // Remplissage dernières transactions (Globales)
+            const txTable = document.getElementById('last-tx-table');
+            txTable.innerHTML = data.recentTransactions.map(tx => `
+                <tr>
+                    <td><span class="label-muted">${new Date(tx.date).toLocaleDateString()}</span></td>
+                    <td style="font-weight:600;">${tx.reason}</td>
+                    <td style="text-align:right; color:${tx.type === 'REVENUE' ? 'var(--success)' : 'var(--danger)'}">
+                        ${tx.type === 'REVENUE' ? '+' : ''}${tx.amount.toLocaleString()} €
+                    </td>
+                </tr>
+            `).join('');
+
+            // Remplissage Top Earners
+            const earnersTable = document.getElementById('top-earners-table');
+            earnersTable.innerHTML = data.topEarners.map((driver, index) => `
+                <tr>
+                    <td style="width: 30px; font-weight:800; color:var(--accent)">#${index + 1}</td>
+                    <td style="font-weight:700;">${driver.name}</td>
+                    <td style="text-align:right; font-weight:700;">${driver.totalGenerated.toLocaleString()} €</td>
+                </tr>
+            `).join('');
+        });
+    </script>
+</body>
+</html>

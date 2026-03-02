@@ -3,103 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Classement des Chauffeurs - VTC Ops</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <title>Elite Drivers - VTC Ops</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --bg: #0f172a; --card: #1e293b; --accent: #3b82f6; 
+            --bg: #020617; --card: #1e293b; --accent: #3b82f6; 
             --text: #f8fafc; --muted: #94a3b8; --border: #334155;
-            --gold: #f59e0b; --silver: #94a3b8; --bronze: #b45309;
+            --gold: #f59e0b; --silver: #cbd5e1; --bronze: #b45309;
+            --success: #10b981;
         }
 
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 40px; }
+        body { 
+            background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
+            margin: 0; padding: 40px; 
+            background-image: radial-gradient(circle at top left, #1e293b 0%, #020617 100%);
+            min-height: 100vh;
+        }
+
         .container { max-width: 1100px; margin: 0 auto; }
 
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
-        h1 { font-size: 1.8rem; letter-spacing: -1px; }
+        .header-section { text-align: center; margin-bottom: 50px; }
+        h1 { font-family: 'JetBrains Mono'; font-size: 2.8rem; letter-spacing: 4px; margin: 0; font-weight: 900; }
+        .subtitle { color: var(--accent); font-weight: 800; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 3px; margin-top: 10px; }
 
-        .btn-back { background: transparent; border: 1px solid var(--border); color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; text-decoration: none; font-size: 0.85rem; font-weight: 600; transition: 0.2s; }
-        .btn-back:hover { background: var(--border); }
+        /* TABLE STYLE */
+        .leaderboard-box { 
+            background: var(--card); border-radius: 30px; border: 1px solid var(--border); 
+            overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.5); 
+            backdrop-filter: blur(10px);
+        }
 
-        table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); }
-        th { background: #16213e; padding: 18px; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: var(--accent); letter-spacing: 1.5px; font-weight: 700; }
-        td { padding: 18px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        tr:last-child td { border-bottom: none; }
-        tr:hover { background: #262f45; transition: 0.2s; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { padding: 25px 20px; background: rgba(0,0,0,0.3); color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid var(--border); }
+        td { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 1rem; vertical-align: middle; }
+        
+        tr.me { background: rgba(59, 130, 246, 0.15); }
+        tr.me td { border-top: 1px solid var(--accent); border-bottom: 1px solid var(--accent); }
 
-        /* Styles spécifiques aux colonnes */
-        .pos-1 { color: var(--gold); font-weight: 800; }
-        .pos-2 { color: var(--silver); font-weight: 800; }
-        .pos-3 { color: var(--bronze); font-weight: 800; }
+        .rank-cell { font-family: 'JetBrains Mono'; font-weight: 900; width: 80px; text-align: center; font-size: 1.2rem; }
+        .name-cell { font-weight: 800; font-size: 1.1rem; }
+        
+        /* Progress Bar for Level */
+        .lvl-container { display: flex; flex-direction: column; gap: 5px; min-width: 150px; }
+        .lvl-text { font-size: 0.75rem; font-weight: 700; color: var(--gold); }
+        .progress-bg { width: 100%; height: 6px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--gold); border-radius: 10px; }
 
-        .rank-tag { padding: 4px 10px; border-radius: 5px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: white; display: inline-block; }
-        .xp-val { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent); }
-        .money-val { color: #10b981; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-        .job-val { font-style: italic; color: var(--muted); font-size: 0.8rem; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .km-cell { font-family: 'JetBrains Mono'; color: var(--accent); font-weight: 700; }
+        .wallet-cell { color: var(--success); font-weight: 700; font-family: 'JetBrains Mono'; }
+
+        /* RANK BADGES */
+        .badge { display: inline-block; width: 32px; height: 32px; line-height: 32px; border-radius: 50%; text-align: center; font-size: 0.9rem; margin-right: 10px; }
+        .badge-1 { background: var(--gold); color: #000; box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
+        .badge-2 { background: var(--silver); color: #000; }
+        .badge-3 { background: var(--bronze); color: #fff; }
+
+        .btn-back { 
+            display: inline-flex; align-items: center; gap: 10px; margin-top: 40px; 
+            color: var(--muted); text-decoration: none; font-weight: 700; font-size: 0.85rem; 
+            border: 1px solid var(--border); padding: 12px 25px; border-radius: 15px; transition: 0.3s; 
+        }
+        .btn-back:hover { background: var(--accent); color: white; border-color: var(--accent); transform: translateX(-5px); }
     </style>
 </head>
 <body>
 
+    <script src="nav.js"></script>
+
     <div class="container">
-        <header>
-            <h1>🏆 CLASSEMENT GÉNÉRAL</h1>
-            <a href="index.html" class="btn-back">⬅ RETOUR DASHBOARD</a>
-        </header>
+        <div class="header-section">
+            <h1>HALL OF <span style="color:var(--accent)">FAME</span></h1>
+            <div class="subtitle">Classement des unités d'élite VTC Ops</div>
+        </div>
 
-        
+        <div class="leaderboard-box">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="text-align: center;">Rang</th>
+                        <th>Chauffeur</th>
+                        <th>Progression de Carrière</th>
+                        <th>Distance</th>
+                        <th style="text-align: right; padding-right: 30px;">Portefeuille</th>
+                    </tr>
+                </thead>
+                <tbody id="full-leaderboard">
+                    </tbody>
+            </table>
+        </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 50px;">Pos</th>
-                    <th>Chauffeur</th>
-                    <th>Rang</th>
-                    <th>Expérience</th>
-                    <th>Dernière Mission</th>
-                    <th>Solde Compte</th>
-                </tr>
-            </thead>
-            <tbody id="leaderboard-body">
-                </tbody>
-        </table>
+        <a href="index.html" class="btn-back">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            RETOUR AU COCKPIT
+        </a>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-
-        // Système de calcul des rangs (Identique au Dashboard pour la cohérence)
-        function getRankInfo(xp) {
-            if (xp < 500) return { name: "Stagiaire", color: "#64748b" };
-            if (xp < 2000) return { name: "Chauffeur Pro", color: "#2563eb" };
-            if (xp < 5000) return { name: "Expert Route", color: "#10b981" };
-            return { name: "Légende VTC", color: "#f59e0b" };
-        }
+        const myName = localStorage.getItem('driverName');
 
         socket.on('update_leaderboard', (drivers) => {
-            const body = document.getElementById('leaderboard-body');
-            body.innerHTML = "";
+            const container = document.getElementById('full-leaderboard');
+            
+            // Tri par XP décroissant
+            const sortedDrivers = drivers.sort((a, b) => b.experience - a.experience);
 
-            // Tri par XP décroissante (Le plus haut en premier)
-            drivers.sort((a, b) => (b.experience || 0) - (a.experience || 0));
-
-            drivers.forEach((driver, index) => {
-                const rank = getRankInfo(driver.experience || 0);
-                const posClass = index === 0 ? "pos-1" : (index === 1 ? "pos-2" : (index === 2 ? "pos-3" : ""));
+            container.innerHTML = sortedDrivers.map((d, i) => {
+                const isMe = d.name === myName;
+                const level = Math.floor(d.experience / 1000) + 1;
+                const progress = (d.experience % 1000) / 10; // Pourcentage vers le prochain niveau
                 
-                const row = `
-                    <tr>
-                        <td class="${posClass}">${index + 1}</td>
-                        <td style="font-weight: 700; letter-spacing: 0.5px;">${driver.name.toUpperCase()}</td>
-                        <td><span class="rank-tag" style="background:${rank.color}">${rank.name}</span></td>
-                        <td class="xp-val">${Math.round(driver.experience || 0)} XP</td>
-                        <td class="job-val">${driver.lastJob || "En attente..."}</td>
-                        <td class="money-val">${driver.wallet.toLocaleString()} €</td>
+                let rankContent = i + 1;
+                if(i === 0) rankContent = `<span class="badge badge-1">1</span>`;
+                else if(i === 1) rankContent = `<span class="badge badge-2">2</span>`;
+                else if(i === 2) rankContent = `<span class="badge badge-3">3</span>`;
+
+                return `
+                    <tr class="${isMe ? 'me' : ''}">
+                        <td class="rank-cell">${rankContent}</td>
+                        <td class="name-cell">
+                            ${d.name} ${isMe ? '<span style="font-size:0.6rem; vertical-align:middle; background:var(--accent); padding:2px 6px; border-radius:4px; margin-left:5px;">MOI</span>' : ''}
+                        </td>
+                        <td>
+                            <div class="lvl-container">
+                                <div class="lvl-text">NIVEAU ${level} <span style="color:var(--muted); font-size:0.6rem; margin-left:10px;">${d.experience} XP</span></div>
+                                <div class="progress-bg">
+                                    <div class="progress-fill" style="width: ${progress}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="km-cell">${Math.round(d.distance).toLocaleString()} KM</td>
+                        <td class="wallet-cell" style="text-align: right; padding-right: 30px;">
+                            ${Math.round(d.wallet).toLocaleString()} €
+                        </td>
                     </tr>
                 `;
-                body.innerHTML += row;
-            });
+            }).join('');
         });
+
+        socket.emit('get_leaderboard_force');
     </script>
 </body>
 </html>

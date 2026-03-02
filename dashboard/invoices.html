@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mes Factures - VTC Ops</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #020617; --card: #1e293b; --text: #f8fafc; --accent: #3b82f6; --success: #10b981; --danger: #ef4444; }
+        
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 40px; }
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        /* Résumé Stats */
+        .accounting-summary { 
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; 
+        }
+        .summary-card { 
+            background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid #334155;
+            text-align: center;
+        }
+        .summary-label { font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .summary-val { font-size: 1.5rem; font-weight: 900; font-family: 'JetBrains Mono'; }
+
+        /* Tableau */
+        .invoice-container { 
+            background: var(--card); border-radius: 20px; border: 1px solid #334155; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .invoice-table { width: 100%; border-collapse: collapse; }
+        
+        th { background: #0f172a; padding: 18px 15px; text-align: left; font-size: 0.75rem; color: #64748b; text-transform: uppercase; }
+        td { padding: 15px; border-bottom: 1px solid #334155; font-size: 0.9rem; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        
+        .amount-pos { color: var(--success); font-weight: 700; }
+        .amount-neg { color: var(--danger); font-weight: 700; }
+        
+        .type-pill { 
+            padding: 5px 10px; border-radius: 6px; font-size: 0.65rem; font-weight: 900; 
+            letter-spacing: 0.5px; display: inline-block;
+        }
+        
+        .empty-state { padding: 50px; text-align: center; color: #64748b; }
+    </style>
+</head>
+<body>
+
+    <script src="nav.js"></script>
+
+    <div class="container">
+        <h1 style="font-family: 'JetBrains Mono'; margin-bottom: 30px;">📑 LIVRE DE <span style="color:var(--accent)">COMPTES</span></h1>
+
+        <div class="accounting-summary">
+            <div class="summary-card">
+                <div class="summary-label">Revenus Totaux</div>
+                <div class="summary-val" id="total-revenue" style="color: var(--success)">0 €</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Charges & Frais</div>
+                <div class="summary-val" id="total-expenses" style="color: var(--danger)">0 €</div>
+            </div>
+            <div class="summary-card" style="background: var(--accent);">
+                <div class="summary-label" style="color: white; opacity: 0.8;">Bénéfice Net</div>
+                <div class="summary-val" id="net-profit" style="color: white">0 €</div>
+            </div>
+        </div>
+
+        <div class="invoice-container">
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Désignation</th>
+                        <th style="text-align: right;">Montant</th>
+                    </tr>
+                </thead>
+                <tbody id="invoice-body">
+                    </tbody>
+            </table>
+            <div id="empty-msg" class="empty-state" style="display:none;">Aucune transaction enregistrée.</div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const myName = localStorage.getItem('driverName');
+
+        socket.emit('get_my_invoices', myName);
+
+        socket.on('receive_invoices', (data) => {
+            const container = document.getElementById('invoice-body');
+            const emptyMsg = document.getElementById('empty-msg');
+            
+            if (!data || data.length === 0) {
+                emptyMsg.style.display = 'block';
+                return;
+            }
+
+            let rev = 0;
+            let exp = 0;
+
+            container.innerHTML = data.map(tx => {
+                const isRevenue = tx.type === 'REVENUE' || tx.amount > 0;
+                if(isRevenue) rev += tx.amount; else exp += Math.abs(tx.amount);
+
+                return `
+                <tr>
+                    <td style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #94a3b8;">
+                        ${new Date(tx.date).toLocaleDateString()}
+                    </td>
+                    <td>
+                        <span class="type-pill" style="background:${isRevenue ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color:${isRevenue ? 'var(--success)' : 'var(--danger)'}">
+                            ${tx.type}
+                        </span>
+                    </td>
+                    <td style="font-weight: 500;">${tx.reason}</td>
+                    <td class="${isRevenue ? 'amount-pos' : 'amount-neg'}" style="text-align: right; font-family: 'JetBrains Mono';">
+                        ${isRevenue ? '+' : '-'}${Math.abs(tx.amount).toLocaleString()} €
+                    </td>
+                </tr>
+            `}).reverse().join('');
+
+            // Mise à jour du résumé
+            document.getElementById('total-revenue').innerText = rev.toLocaleString() + " €";
+            document.getElementById('total-expenses').innerText = exp.toLocaleString() + " €";
+            document.getElementById('net-profit').innerText = (rev - exp).toLocaleString() + " €";
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Rejoignez-nous - VTC Ops</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #020617; --accent: #3b82f6; --card: #1e293b; --gold: #f59e0b; --silver: #94a3b8; --bronze: #b45309; }
+        
+        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
+        
+        /* Hero Section */
+        .hero { 
+            padding: 120px 20px; 
+            background: linear-gradient(rgba(2,6,23,0.85), rgba(2,6,23,0.85)), url('https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=1600&q=80'); 
+            background-size: cover; 
+            background-position: center;
+            background-attachment: fixed;
+        }
+        
+        .stats-banner { display: flex; justify-content: center; gap: 30px; margin-top: 50px; flex-wrap: wrap; }
+        .stat-item { 
+            background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px);
+            padding: 25px; border-radius: 20px; min-width: 180px; 
+            border: 1px solid rgba(255,255,255,0.1); 
+        }
+        .stat-num { display: block; font-size: 2.5rem; font-weight: 900; color: var(--accent); font-family: 'JetBrains Mono'; }
+        
+        .cta-button { 
+            display: inline-block; margin-top: 50px; padding: 22px 50px; 
+            background: var(--accent); color: white; text-decoration: none; 
+            border-radius: 15px; font-weight: 900; font-size: 1.1rem;
+            transition: 0.3s; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+        }
+        .cta-button:hover { transform: translateY(-5px); background: #2563eb; box-shadow: 0 15px 40px rgba(59, 130, 246, 0.6); }
+
+        /* Podium Styles */
+        .podium-section { padding: 80px 20px; background: #010410; }
+        .podium-container { 
+            display: flex; justify-content: center; align-items: flex-end; 
+            gap: 15px; margin-top: 50px; height: 300px; 
+        }
+        .podium-step { 
+            width: 150px; border-radius: 15px 15px 5px 5px; 
+            display: flex; flex-direction: column; align-items: center; 
+            padding: 20px; position: relative; transition: 0.5s;
+        }
+        .step-1 { background: linear-gradient(to top, #1e293b, #f59e0b22); border: 2px solid var(--gold); height: 100%; }
+        .step-2 { background: linear-gradient(to top, #1e293b, #94a3b822); border: 2px solid var(--silver); height: 80%; }
+        .step-3 { background: linear-gradient(to top, #1e293b, #b4530922); border: 2px solid var(--bronze); height: 65%; }
+        
+        .podium-name { font-weight: 900; font-size: 1rem; margin-top: 10px; text-align: center; }
+        .medal { font-size: 2.5rem; margin-bottom: 10px; }
+        .podium-xp { font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--accent); }
+
+        .section-title { font-family: 'JetBrains Mono'; font-size: 2rem; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="hero">
+        <h1 style="font-size: 4rem; margin-bottom: 10px; font-weight: 900;">PRENEZ LE <span style="color:var(--accent)">VOLANT</span></h1>
+        <p style="color: #94a3b8; font-size: 1.3rem; max-width: 700px; margin: 0 auto;">Rejoignez l'élite des transporteurs routiers virtuels. Une technologie avancée pour une immersion totale.</p>
+
+        <div class="stats-banner">
+            <div class="stat-item">
+                <span class="stat-num" id="stat-km">0</span>
+                <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 700;">KM TOTAUX</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-num" id="stat-drivers">0</span>
+                <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 700;">ÉQUIPAGE</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-num" id="stat-xp">0</span>
+                <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 700;">EXPÉRIENCE</span>
+            </div>
+        </div>
+
+        <a href="register.html" class="cta-button">POSTULER MAINTENANT</a>
+    </div>
+
+    <div class="podium-section">
+        <h2 class="section-title">🏆 TOP <span style="color:var(--accent)">UNITÉS</span> DU MOIS</h2>
+        <div class="podium-container" id="podium-list">
+            </div>
+    </div>
+
+    <div style="padding: 100px 20px; max-width: 900px; margin: 0 auto; text-align: center;">
+        <h2 class="section-title">VOTRE CARRIÈRE CHEZ <span style="color:var(--accent)">VTC OPS</span></h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 50px;">
+            <div style="text-align: left; background: var(--card); padding: 30px; border-radius: 20px;">
+                <h3 style="color: var(--accent);">📡 Télémétrie Live</h3>
+                <p style="color: #94a3b8; font-size: 0.9rem;">Votre vitesse, votre cargaison et votre état mécanique sont suivis en temps réel pour une assistance optimale.</p>
+            </div>
+            <div style="text-align: left; background: var(--card); padding: 30px; border-radius: 20px;">
+                <h3 style="color: var(--accent);">💳 Paie Dynamique</h3>
+                <p style="color: #94a3b8; font-size: 0.9rem;">Gagnez de l'argent virtuels, payez vos amendes et investissez dans votre propre garage.</p>
+            </div>
+            <div style="text-align: left; background: var(--card); padding: 30px; border-radius: 20px;">
+                <h3 style="color: var(--accent);">🚛 Convois Hebdo</h3>
+                <p style="color: #94a3b8; font-size: 0.9rem;">Ne roulez plus jamais seul. Rejoignez nos livraisons de groupe organisées via notre calendrier intégré.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        socket.emit('get_hiring_stats');
+
+        socket.on('receive_hiring_stats', (data) => {
+            document.getElementById('stat-km').innerText = Math.round(data.totalKM).toLocaleString();
+            document.getElementById('stat-drivers').innerText = data.activeDrivers;
+            document.getElementById('stat-xp').innerText = Math.round(data.totalXP).toLocaleString();
+
+            const podium = document.getElementById('podium-list');
+            const tops = data.topThree;
+
+            if (tops && tops.length >= 1) {
+                podium.innerHTML = `
+                    ${tops[1] ? `
+                    <div class="podium-step step-2">
+                        <span class="medal">🥈</span>
+                        <span class="podium-name">${tops[1].name}</span>
+                        <span class="podium-xp">${Math.round(tops[1].xp)} XP</span>
+                    </div>` : ''}
+
+                    <div class="podium-step step-1">
+                        <span class="medal">🥇</span>
+                        <span class="podium-name">${tops[0].name}</span>
+                        <span class="podium-xp">${Math.round(tops[0].xp)} XP</span>
+                    </div>
+
+                    ${tops[2] ? `
+                    <div class="podium-step step-3">
+                        <span class="medal">🥉</span>
+                        <span class="podium-name">${tops[2].name}</span>
+                        <span class="podium-xp">${Math.round(tops[2].xp)} XP</span>
+                    </div>` : ''}
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

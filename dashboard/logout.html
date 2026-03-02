@@ -3,58 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fin de Service - VTC Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <title>Fin de Service - VTC Ops</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
+        :root { 
+            --bg: #020617; --card: #1e293b; --accent: #3b82f6; 
+            --text: #f8fafc; --muted: #94a3b8; --border: #334155;
+        }
+
         body { 
-            background: #0f172a; color: white; font-family: 'Inter', sans-serif; 
-            display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0;
+            background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
+            margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh;
+            text-align: center; overflow: hidden;
+            background-image: 
+                linear-gradient(rgba(2, 6, 23, 0.8), rgba(2, 6, 23, 0.8)),
+                url('https://images.unsplash.com/photo-1586191582151-f737730a1632?auto=format&fit=crop&q=80&w=1000'); /* Optionnel: Image de camion floue en fond */
+            background-size: cover; background-position: center;
         }
-        .summary-card {
-            background: #1e293b; padding: 40px; border-radius: 20px; text-align: center;
-            border: 1px solid #334155; box-shadow: 0 20px 50px rgba(0,0,0,0.5); width: 350px;
+
+        .logout-box {
+            background: rgba(30, 41, 59, 0.7); padding: 50px; border-radius: 30px;
+            border: 1px solid var(--border); backdrop-filter: blur(15px);
+            max-width: 450px; width: 90%;
+            animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
         }
-        .icon { font-size: 3rem; margin-bottom: 20px; }
-        h1 { font-size: 1.2rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; }
-        .stat-box { margin: 25px 0; padding: 20px; background: #0f172a; border-radius: 12px; }
-        .val { display: block; font-family: 'JetBrains Mono'; font-size: 2rem; color: #10b981; }
-        .label { font-size: 0.75rem; color: #64748b; font-weight: 700; }
-        .btn-confirm {
-            background: #3b82f6; color: white; border: none; padding: 12px 30px;
-            border-radius: 8px; font-weight: 700; cursor: pointer; width: 100%;
+
+        .status-light {
+            width: 12px; height: 12px; background: var(--accent);
+            border-radius: 50%; margin: 0 auto 20px;
+            box-shadow: 0 0 15px var(--accent);
+            animation: blink 1s infinite;
+        }
+
+        h1 { font-family: 'JetBrains Mono'; font-size: 1.8rem; letter-spacing: 3px; margin: 0 0 15px 0; font-weight: 900; }
+        p { color: var(--muted); font-size: 0.95rem; line-height: 1.6; margin: 5px 0; }
+
+        .console-text {
+            font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--accent);
+            margin-top: 25px; text-transform: uppercase; letter-spacing: 1px;
+            opacity: 0.8;
+        }
+
+        /* Barre de progression style "Terminal" */
+        .loader-container {
+            margin-top: 35px; width: 100%; height: 6px;
+            background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .loader-bar {
+            width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent), #60a5fa);
+            box-shadow: 0 0 10px var(--accent);
+            animation: loadProgress 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+        }
+
+        @keyframes loadProgress {
+            0% { width: 0%; }
+            30% { width: 45%; }
+            70% { width: 60%; }
+            100% { width: 100%; }
         }
     </style>
 </head>
 <body>
 
-    <div class="summary-card">
-        <div class="icon">🚛💨</div>
-        <h1>Fin de Service</h1>
-        <p id="bye-msg" style="font-size: 0.9rem; color: #94a3b8;">Excellent travail, chauffeur.</p>
-
-        <div class="stat-box">
-            <span class="label">SOLDE FINAL</span>
-            <span id="final-wallet" class="val">0 €</span>
+    <div class="logout-box">
+        <div class="status-light"></div>
+        <h1>FIN DE SERVICE</h1>
+        
+        <p>Excellent travail, Chauffeur <strong id="driver-name" style="color: white;">...</strong>.</p>
+        <p style="font-size: 0.8rem;">Votre journal de bord a été archivé.</p>
+        
+        <div class="console-text" id="status-msg">Déconnexion du serveur central...</div>
+        
+        <div class="loader-container">
+            <div class="loader-bar"></div>
         </div>
-
-        <button class="btn-confirm" onclick="finish()">RETOUR À L'ACCUEIL</button>
     </div>
 
     <script>
-        // On récupère le nom et le solde stockés avant de les effacer
-        const name = localStorage.getItem('vtcName');
-        const wallet = localStorage.getItem('lastWallet'); // On utilisera le dernier solde connu
+        const name = localStorage.getItem('driverName') || "Elite";
+        document.getElementById('driver-name').innerText = name;
 
-        if(name) document.getElementById('bye-msg').innerText = `À bientôt, ${name.toUpperCase()} !`;
-        if(wallet) document.getElementById('final-wallet').innerText = wallet + " €";
+        const statusMsg = document.getElementById('status-msg');
+        const stages = [
+            "Synchronisation GPS...",
+            "Transmission des relevés de péages...",
+            "Verrouillage du terminal...",
+            "Service terminé."
+        ];
 
-        function finish() {
-            // Nettoyage complet
-            localStorage.removeItem('vtcName');
-            localStorage.removeItem('lastWallet');
+        // Faire défiler les messages de console
+        let i = 0;
+        const interval = setInterval(() => {
+            if (i < stages.length) {
+                statusMsg.innerText = stages[i];
+                i++;
+            } else {
+                clearInterval(interval);
+            }
+        }, 500);
+
+        // Nettoyage et redirection
+        setTimeout(() => {
+            localStorage.clear();
             sessionStorage.clear();
-            window.location.href = "login.html";
-        }
+            window.location.href = 'login.html';
+        }, 2800);
     </script>
 </body>
 </html>

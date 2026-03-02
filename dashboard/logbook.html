@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Journal de Bord - VTC Ops</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --bg: #020617; --card: #1e293b; --accent: #3b82f6; 
+            --text: #f8fafc; --muted: #94a3b8; --border: #334155;
+            --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
+        }
+
+        body { 
+            background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
+            margin: 0; padding: 40px;
+            background-image: radial-gradient(circle at top right, #1e293b 0%, #020617 100%);
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        /* HEADER & STATS */
+        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        h1 { font-family: 'JetBrains Mono'; font-size: 2.2rem; margin: 0; letter-spacing: -1px; }
+        
+        .stats-summary { display: flex; gap: 20px; }
+        .stat-card { 
+            background: rgba(30, 41, 59, 0.5); border: 1px solid var(--border); 
+            padding: 15px 25px; border-radius: 16px; min-width: 180px;
+        }
+        .stat-label { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; }
+        .stat-val { font-family: 'JetBrains Mono'; font-size: 1.4rem; font-weight: 700; }
+
+        /* FILTRES */
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 25px; }
+        .filter-btn { 
+            background: var(--card); border: 1px solid var(--border); color: var(--muted);
+            padding: 8px 16px; border-radius: 10px; font-size: 0.75rem; font-weight: 700;
+            cursor: pointer; transition: 0.2s;
+        }
+        .filter-btn:hover { border-color: var(--accent); color: white; }
+        .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        /* LOG TABLE */
+        .log-wrapper { 
+            background: var(--card); border-radius: 24px; border: 1px solid var(--border); 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4); overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 20px; background: rgba(15, 23, 42, 0.8); color: var(--muted); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; }
+        td { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: rgba(59, 130, 246, 0.03); }
+
+        /* TAGS & AMOUNTS */
+        .tag { padding: 5px 10px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; display: inline-block; }
+        .tag-delivery { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .tag-bonus { background: rgba(59, 130, 246, 0.1); color: var(--accent); border: 1px solid rgba(59, 130, 246, 0.3); }
+        .tag-fine { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .tag-maintenance { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+
+        .amount { font-family: 'JetBrains Mono'; font-weight: 700; text-align: right; }
+        .pos { color: var(--success); }
+        .neg { color: var(--danger); }
+
+        .btn-back { 
+            display: inline-flex; align-items: center; gap: 8px; margin-top: 30px; 
+            color: var(--muted); text-decoration: none; font-size: 0.8rem; font-weight: 600;
+        }
+        .btn-back:hover { color: var(--accent); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-flex">
+            <div>
+                <div style="color: var(--accent); font-weight: 800; font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 5px;">Archives Télémétriques</div>
+                <h1>LOGBOOK</h1>
+            </div>
+            <div class="stats-summary">
+                <div class="stat-card">
+                    <div class="stat-label">Missions Réussies</div>
+                    <div class="stat-val" id="total-missions">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Chiffre d'Affaires</div>
+                    <div class="stat-val" id="total-earnings" style="color:var(--success)">0 €</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-bar">
+            <button class="filter-btn active" onclick="filterLogs('all')">TOUT</button>
+            <button class="filter-btn" onclick="filterLogs('Livraison')">LIVRAISONS</button>
+            <button class="filter-btn" onclick="filterLogs('Amende')">AMENDES</button>
+            <button class="filter-btn" onclick="filterLogs('Maintenance')">ENTRETIEN</button>
+        </div>
+
+        <div class="log-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date & Heure</th>
+                        <th>Catégorie</th>
+                        <th>Détails de l'opération</th>
+                        <th>Distance</th>
+                        <th style="text-align: right;">Impact Financier</th>
+                    </tr>
+                </thead>
+                <tbody id="log-table-body">
+                    <tr><td colspan="5" style="text-align:center; padding:60px; color:var(--muted); font-style: italic;">
+                        Lecture de la boîte noire en cours...
+                    </td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <a href="index.html" class="btn-back">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            RETOUR AU COCKPIT
+        </a>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const driverName = localStorage.getItem('driverName');
+        let allLogs = [];
+
+        socket.emit('get_driver_logs', driverName);
+
+        socket.on('receive_logs', (logs) => {
+            allLogs = logs.sort((a, b) => new Date(b.date) - new Date(a.date));
+            renderLogs(allLogs);
+            calculateStats(allLogs);
+        });
+
+        function calculateStats(logs) {
+            const totalMissions = logs.filter(l => l.type === 'Livraison').length;
+            const totalEarnings = logs.reduce((acc, curr) => acc + curr.amount, 0);
+            
+            document.getElementById('total-missions').innerText = totalMissions;
+            document.getElementById('total-earnings').innerText = totalEarnings.toLocaleString() + " €";
+        }
+
+        function filterLogs(type) {
+            // Update UI buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.innerText.toLowerCase() === type.toLowerCase() || (type === 'all' && btn.innerText === 'TOUT'));
+            });
+
+            const filtered = type === 'all' ? allLogs : allLogs.filter(l => l.type === type);
+            renderLogs(filtered);
+        }
+
+        function renderLogs(logs) {
+            const tbody = document.getElementById('log-table-body');
+            
+            if (logs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--muted);">Aucune donnée pour cette catégorie.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = logs.map(log => {
+                const isPos = log.amount >= 0;
+                let tagClass = "tag-delivery";
+                if(log.type === 'Bonus') tagClass = "tag-bonus";
+                if(log.type === 'Amende' || log.type === 'Achat') tagClass = "tag-fine";
+                if(log.type === 'Maintenance') tagClass = "tag-maintenance";
+
+                return `
+                    <tr>
+                        <td style="color:var(--muted); font-family: 'JetBrains Mono'; font-size: 0.75rem;">
+                            ${new Date(log.date).toLocaleString('fr-FR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'})}
+                        </td>
+                        <td><span class="tag ${tagClass}">${log.type}</span></td>
+                        <td style="font-weight:600; color: var(--text);">${log.details || 'Opération système'}</td>
+                        <td style="font-family:'JetBrains Mono'; color:var(--muted); font-size:0.8rem;">
+                            ${log.distance ? `<span>📍</span> ${log.distance} KM` : '---'}
+                        </td>
+                        <td class="amount ${isPos ? 'pos' : 'neg'}">
+                            ${isPos ? '+' : ''}${log.amount.toLocaleString()} €
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>

@@ -2,186 +2,202 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fleet Manager - VTC Pro Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <title>Cockpit VTC Ops</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --bg: #f8fafc; --sidebar: #0f172a; --card: #ffffff; 
-            --accent: #2563eb; --danger: #ef4444; --success: #10b981;
-            --warning: #f59e0b; --text-main: #1e293b; --text-muted: #64748b;
-            --border: #e2e8f0;
+            --bg: #020617; --card: #1e293b; --accent: #3b82f6; 
+            --text: #f8fafc; --muted: #94a3b8; --border: #334155;
+            --success: #10b981; --danger: #ef4444; --gold: #f59e0b;
         }
 
-        body { background: var(--bg); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; display: flex; min-height: 100vh; overflow: hidden; }
+        body { 
+            background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
+            margin: 0; padding: 20px; overflow-x: hidden;
+            background-image: radial-gradient(circle at top right, #1e293b 0%, #020617 100%);
+        }
 
-        /* Sidebar Style */
-        .sidebar { width: 280px; background: var(--sidebar); color: white; padding: 25px; display: flex; flex-direction: column; box-shadow: 4px 0 10px rgba(0,0,0,0.05); }
-        .sidebar h2 { font-size: 0.9rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 40px; }
+        /* NOTIFICATIONS FLASH */
+        #flash-zone { 
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%); 
+            z-index: 1000; width: 450px; pointer-events: none;
+        }
+        .flash-msg { 
+            background: rgba(59, 130, 246, 0.95); color: white; padding: 20px; 
+            border-radius: 16px; margin-bottom: 10px; font-weight: 800; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(15px); animation: slideDown 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes slideDown { from { transform: translateY(-100px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
 
-        /* Main Content Area */
-        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .stats-top { display: flex; gap: 15px; }
+        .stat-mini { background: var(--card); padding: 10px 20px; border-radius: 12px; border: 1px solid var(--border); font-family: 'JetBrains Mono'; position: relative; }
+        .stat-mini span { color: var(--muted); font-size: 0.6rem; text-transform: uppercase; display: block; letter-spacing: 1px; }
 
-        .driver-info { display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; }
-        .driver-info:hover { opacity: 0.8; }
-        .driver-tag { background: #e2e8f0; padding: 8px 15px; border-radius: 8px; font-weight: 700; font-size: 0.9rem; color: var(--text-main); }
+        /* BADGE ASSURANCE */
+        .insurance-badge {
+            position: absolute; -top: 5px; -right: 5px; width: 10px; height: 10px; 
+            border-radius: 50%; background: var(--danger); border: 2px solid var(--card);
+        }
+        .insurance-badge.active { background: var(--success); box-shadow: 0 0 10px var(--success); }
+
+        .main-grid { display: grid; grid-template-columns: 1fr 380px; gap: 20px; max-width: 1400px; margin: 0 auto; }
+        .card { background: var(--card); border-radius: 24px; border: 1px solid var(--border); padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+
+        .speed-box { text-align: center; padding: 40px 0; background: linear-gradient(180deg, rgba(59, 130, 246, 0.05) 0%, transparent 100%); }
+        .speed-val { font-size: 7rem; font-weight: 900; font-family: 'JetBrains Mono'; color: var(--accent); line-height: 0.8; margin: 15px 0; }
+        .speed-unit { color: var(--muted); letter-spacing: 8px; font-weight: 800; font-size: 0.8rem; }
         
-        #rank-badge { padding: 6px 12px; border-radius: 6px; color: white; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; transition: all 0.5s ease; }
+        .mission-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 25px; }
+        .info-card { background: rgba(15, 23, 42, 0.4); padding: 15px; border-radius: 16px; border: 1px solid var(--border); }
+        .label { color: var(--muted); font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
+        .value { font-size: 1.1rem; font-weight: 700; margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        /* Widgets */
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px; }
-        .card { background: var(--card); border-radius: 12px; padding: 20px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .nav-item { 
+            background: var(--card); border: 1px solid var(--border); color: white; 
+            padding: 15px; border-radius: 16px; text-decoration: none; text-align: center;
+            font-weight: 700; font-size: 0.7rem; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        .nav-item:hover { border-color: var(--accent); background: #2d3a4f; transform: translateY(-3px); }
+        .nav-item span { font-size: 1.5rem; }
 
-        /* Compteur de Vitesse */
-        .speed-card { text-align: center; padding: 40px 20px; margin-bottom: 25px; border-top: 4px solid var(--accent); position: relative; }
-        .speed-value { font-family: 'JetBrains Mono', monospace; font-size: 6.5rem; font-weight: 700; color: var(--text-main); line-height: 1; }
-        .speed-unit { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 2px; }
-        #gear-indicator { position: absolute; top: 20px; right: 20px; font-family: 'JetBrains Mono'; font-size: 1.5rem; font-weight: 800; color: var(--accent); }
-
-        /* Jauges */
-        .bar-label { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; margin-bottom: 8px; color: #94a3b8; }
-        .bar-bg { height: 8px; background: #334155; border-radius: 4px; overflow: hidden; margin-bottom: 25px; }
-        .bar-fill { height: 100%; width: 0%; transition: width 0.6s cubic-bezier(0.17, 0.67, 0.83, 0.67), background 0.3s; }
-
-        /* Boutons Navigation */
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-family: 'Inter'; margin-bottom: 12px; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-outline { background: transparent; border: 1px solid #334155; color: #94a3b8; }
-        .btn-outline:hover { background: #1e293b; color: white; border-color: var(--accent); }
-        .btn-logout { margin-top: auto; background: #450a0a; color: #f87171; border: 1px solid #7f1d1d; }
-
-        #alert-banner { display: none; position: fixed; top: 0; left: 0; right: 0; background: var(--sidebar); color: white; padding: 18px; text-align: center; font-weight: 700; z-index: 9999; border-bottom: 4px solid var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .leader-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
-    <div id="alert-banner"></div>
+    <audio id="alert-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
 
-    <audio id="audio-flash" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
-    <audio id="audio-money" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
+    <div id="flash-zone"></div>
 
-    <div class="sidebar">
-        <h2>VTC COMMAND CENTER</h2>
-        
-        <div class="sidebar-stats">
-            <div class="bar-label">RÉSERVOIR CARBURANT</div>
-            <div id="side-fuel-val" style="color:white; font-family:'JetBrains Mono'; margin-bottom:5px; font-size: 0.8rem;">-- L</div>
-            <div class="bar-bg"><div id="fuel-bar" class="bar-fill" style="background: var(--success);"></div></div>
+    <div class="main-grid">
+        <div class="left-col">
+            <header>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <img src="logo.png" height="35" alt="Logo">
+                    <h1 style="font-family: 'JetBrains Mono'; font-size: 1.1rem; margin: 0; letter-spacing: 2px;">VTC <span style="color:var(--accent)">OPS</span> COMMAND</h1>
+                </div>
+                <div class="stats-top">
+                    <div class="stat-mini"><span>CHAUFFEUR</span> <div id="disp-name">---</div></div>
+                    <div class="stat-mini">
+                        <span>ASSURANCE</span> 
+                        <div id="disp-insur">NON COUVERT</div>
+                        <div id="insur-dot" class="insurance-badge"></div>
+                    </div>
+                    <div class="stat-mini"><span>SOLDE</span> <div id="disp-wallet" style="color:var(--success)">0 €</div></div>
+                    <div class="stat-mini"><span>NIVEAU</span> <div id="disp-xp" style="color:var(--gold)">0 XP</div></div>
+                </div>
+            </header>
 
-            <div class="bar-label">ÉTAT DU CAMION</div>
-            <div id="side-damage-val" style="color:white; font-family:'JetBrains Mono'; margin-bottom:5px; font-size: 0.8rem;">0%</div>
-            <div class="bar-bg"><div id="damage-bar" class="bar-fill" style="background: var(--danger);"></div></div>
-        </div>
+            <div class="card speed-box">
+                <div class="label" id="truck-brand-model">SYSTÈME TÉLÉMÉTRIE DÉCONNECTÉ</div>
+                <div class="speed-val" id="speed">0</div>
+                <div class="speed-unit">KILOMÈTRES / HEURE</div>
+            </div>
 
-        <button class="btn btn-outline" onclick="window.location.href='profile.html'">👤 MON PROFIL</button>
-        <button class="btn btn-outline" onclick="window.location.href='leaderboard.html'">🏆 CLASSEMENT</button>
-        <button class="btn btn-outline" onclick="checkAdminAccess()">⚙️ PANEL ADMIN</button>
-        
-        <button class="btn btn-logout" onclick="logout()">FIN DE SERVICE</button>
-    </div>
-
-    <div class="main-content">
-        <div class="header">
-            <div class="driver-info" onclick="window.location.href='profile.html'">
-                <div class="driver-tag">DRIVER: <span id="driver-name">---</span></div>
-                <span id="rank-badge" style="background: #64748b;">ANALYSE XP...</span>
+            <div class="card" style="margin-top: 20px;">
+                <div class="label" style="color:var(--accent); display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 8px; height: 8px; background: var(--accent); border-radius: 50%;"></span> 
+                    LOGISTIQUE DE FRET
+                </div>
+                <div class="mission-grid">
+                    <div class="info-card"><div class="label">Cargaison</div><div class="value" id="cargo">---</div></div>
+                    <div class="info-card"><div class="label">Arrivée prévue</div><div class="value" id="dest">---</div></div>
+                    <div class="info-card"><div class="label">Distance</div><div class="value" id="dist">0 KM</div></div>
+                    <div class="info-card"><div class="label">Intégrité</div><div class="value" id="wear">100%</div></div>
+                </div>
             </div>
         </div>
 
-        <div class="stats-grid">
+        <aside>
             <div class="card">
-                <div class="bar-label">PORTEFEUILLE</div>
-                <div id="wallet" style="font-size: 1.6rem; font-weight: 700; color: var(--success);">0.00 €</div>
+                <div class="label" style="margin-bottom:15px;">TERMINAL DE NAVIGATION</div>
+                <div class="nav-grid">
+                    <a href="garage.html" class="nav-item"><span>🚚</span>GARAGE</a>
+                    <a href="convoys.html" class="nav-item"><span>📅</span>CONVOIS</a>
+                    <a href="insurance.html" class="nav-item"><span>🛡️</span>ASSURANCE</a>
+                    <a href="awards.html" class="nav-item"><span>🏆</span>SUCCÈS</a>
+                    <a href="maintenance.html" class="nav-item" style="grid-column: 1/3; border-color: var(--danger); color: var(--danger);">
+                        <span>🛠️</span>UNITÉ DE RÉPARATION
+                    </a>
+                </div>
             </div>
-            <div class="card">
-                <div class="bar-label">DISTANCE TOTALE</div>
-                <div id="odometer" style="font-size: 1.6rem; font-weight: 700;">0 KM</div>
-            </div>
-            <div class="card">
-                <div class="bar-label">EXPÉRIENCE (XP)</div>
-                <div id="xp-display" style="font-size: 1.6rem; font-weight: 700; color: var(--accent);">0 XP</div>
-            </div>
-        </div>
 
-        <div class="card speed-card">
-            <div id="gear-indicator">N</div>
-            <div class="speed-unit">Vitesse Actuelle</div>
-            <div id="speed" class="speed-value">0</div>
-            <div class="speed-unit">KILOMÈTRES / HEURE</div>
-        </div>
+            <div class="card" style="margin-top: 20px;">
+                <div class="label" style="margin-bottom:15px;">CLASSEMENT DE LA FLOTTE</div>
+                <div id="leaderboard"></div>
+            </div>
+        </aside>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        const user = localStorage.getItem('vtcName');
+        const driverName = localStorage.getItem('driverName') || "Invité";
+        document.getElementById('disp-name').innerText = driverName;
 
-        if (!user) { window.location.href = "login.html"; } 
-        else { document.getElementById('driver-name').innerText = user.toUpperCase(); }
-
-        function updateRank(xp) {
-            let rank = { name: "Stagiaire", color: "#64748b" };
-            if (xp >= 500) rank = { name: "Chauffeur Pro", color: "#2563eb" };
-            if (xp >= 2000) rank = { name: "Expert Route", color: "#10b981" };
-            if (xp >= 5000) rank = { name: "Légende VTC", color: "#f59e0b" };
-
-            const badge = document.getElementById('rank-badge');
-            badge.innerText = rank.name;
-            badge.style.backgroundColor = rank.color;
-        }
-
-        function checkAdminAccess() {
-            const code = prompt("Saisissez la clé de sécurité :");
-            if (code === "DAMIAN_VTC_2024") {
-                sessionStorage.setItem('adminAccess', 'granted');
-                window.location.href = 'admin.html';
-            } else if (code !== null) { alert("🚫 Clé incorrecte."); }
-        }
-
+        // MISE À JOUR LIVE
         socket.on('update_dashboard', (data) => {
-            document.getElementById('speed').innerText = data.truck.speed;
-            document.getElementById('odometer').innerText = Math.round(data.totalKM) + " KM";
-            document.getElementById('xp-display').innerText = (data.experience || 0) + " XP";
+            document.getElementById('disp-wallet').innerText = Math.round(data.wallet).toLocaleString() + " €";
+            document.getElementById('disp-xp').innerText = data.experience + " XP";
             
-            // Gestion de l'indicateur de vitesse (Gear)
-            let g = data.truck.gear;
-            document.getElementById('gear-indicator').innerText = g > 0 ? g : (g < 0 ? "R" : "N");
-            
-            updateRank(data.experience || 0);
-
-            const currentWallet = data.wallet;
-            document.getElementById('wallet').innerText = currentWallet.toLocaleString() + " €";
-            if (window.lastWallet && currentWallet > window.lastWallet) {
-                document.getElementById('audio-money').play().catch(() => {});
+            // Gestion Assurance
+            const insurEl = document.getElementById('disp-insur');
+            const insurDot = document.getElementById('insur-dot');
+            if(data.hasInsurance) {
+                insurEl.innerText = "COUVERT";
+                insurEl.style.color = "var(--success)";
+                insurDot.classList.add('active');
+            } else {
+                insurEl.innerText = "NON COUVERT";
+                insurEl.style.color = "var(--danger)";
+                insurDot.classList.remove('active');
             }
-            window.lastWallet = currentWallet;
 
-            // Fuel
-            const fuelPct = (data.truck.fuel / (data.truck.fuelCapacity || 400)) * 100;
-            const fuelBar = document.getElementById('fuel-bar');
-            fuelBar.style.width = fuelPct + "%";
-            document.getElementById('side-fuel-val').innerText = Math.round(data.truck.fuel) + " L";
-            fuelBar.style.background = fuelPct < 15 ? "var(--danger)" : (fuelPct < 40 ? "var(--warning)" : "var(--success)");
+            document.getElementById('speed').innerText = Math.round(data.truck?.speed || 0);
+            document.getElementById('truck-brand-model').innerText = `${data.truck?.brand || '---'} ${data.truck?.model || ''}`;
+            
+            const wear = data.truck?.wearSum || 0;
+            const wearEl = document.getElementById('wear');
+            wearEl.innerText = (100 - wear).toFixed(1) + "%"; // On affiche l'intégrité plutôt que les dégâts
+            wearEl.style.color = wear > 15 ? "var(--danger)" : "var(--success)";
 
-            // Damage
-            document.getElementById('damage-bar').style.width = data.truck.wearSum + "%";
-            document.getElementById('side-damage-val').innerText = Math.round(data.truck.wearSum) + "%";
+            document.getElementById('cargo').innerText = data.job?.cargo || "En attente...";
+            document.getElementById('dest').innerText = data.job?.destinationCity || "---";
+            document.getElementById('dist').innerText = Math.round(data.job?.remainingDistanceKm || 0) + " KM";
         });
 
+        // FLASH MESSAGES AVEC SON
         socket.on('receive_flash', (msg) => {
-            document.getElementById('audio-flash').play().catch(() => {});
-            const banner = document.getElementById('alert-banner');
-            banner.innerText = "📣 MESSAGE DISPATCH : " + msg;
-            banner.style.display = 'block';
-            setTimeout(() => { banner.style.display = 'none'; }, 10000);
+            const sound = document.getElementById('alert-sound');
+            sound.play().catch(e => console.log("Audio bloqué par le navigateur"));
+
+            const zone = document.getElementById('flash-zone');
+            const div = document.createElement('div');
+            div.className = 'flash-msg';
+            div.innerHTML = `<div style="font-size: 0.7rem; color: rgba(255,255,255,0.7); margin-bottom: 5px;">MESSAGE DU DISPATCHER</div>${msg}`;
+            zone.appendChild(div);
+            setTimeout(() => {
+                div.style.opacity = '0';
+                setTimeout(() => div.remove(), 500);
+            }, 7000);
         });
 
-        function logout() {
-            const currentWallet = document.getElementById('wallet').innerText.replace(' €', '');
-            localStorage.setItem('lastWallet', currentWallet);
-            window.location.href = "logout.html";
-        }
+        socket.on('update_leaderboard', (drivers) => {
+            const container = document.getElementById('leaderboard');
+            container.innerHTML = drivers.slice(0, 5).map((d, i) => `
+                <div class="leader-row">
+                    <span>${i+1}. <b>${d.name}</b></span>
+                    <span style="color:var(--accent)">${Math.round(d.distance).toLocaleString()} KM</span>
+                </div>
+            `).join('');
+        });
+
+        setInterval(() => socket.emit('get_driver_data', driverName), 2000);
     </script>
 </body>
 </html>

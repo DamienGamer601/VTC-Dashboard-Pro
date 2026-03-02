@@ -3,130 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Profil Chauffeur - VTC Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <title>Dossier Chauffeur - VTC Ops</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --bg: #0f172a; --card: #1e293b; --accent: #3b82f6; 
+            --bg: #020617; --card: #1e293b; --accent: #3b82f6; 
             --text: #f8fafc; --muted: #94a3b8; --border: #334155;
+            --gold: #f59e0b; --success: #10b981; --danger: #ef4444;
         }
 
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 40px; display: flex; justify-content: center; }
-        .profile-container { width: 100%; max-width: 600px; }
+        body { 
+            background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; 
+            margin: 0; padding: 40px;
+            background-image: radial-gradient(circle at top left, #1e293b 0%, #020617 100%);
+            min-height: 100vh;
+        }
 
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .btn-back { background: transparent; border: 1px solid var(--border); color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; text-decoration: none; font-size: 0.8rem; }
+        .profile-container { max-width: 900px; margin: 0 auto; animation: fadeIn 0.8s ease-out; }
 
-        /* Carte Profil */
-        .profile-card { background: var(--card); border-radius: 20px; border: 1px solid var(--border); padding: 40px; position: relative; overflow: hidden; }
-        .profile-card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 6px; background: var(--accent); }
+        /* HEADER DOSSIER */
+        .profile-header { 
+            background: linear-gradient(135deg, var(--card) 0%, #0f172a 100%); 
+            border: 1px solid var(--border); 
+            border-radius: 32px; padding: 45px; display: flex; align-items: center; gap: 35px;
+            position: relative; overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+        }
 
-        .avatar-area { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; }
-        .avatar-circle { width: 80px; height: 80px; background: #334155; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; border: 3px solid var(--accent); }
+        /* Décoration de fond style scanline */
+        .profile-header::before {
+            content: "CONFIDENTIAL"; position: absolute; top: 10px; right: -20px;
+            font-family: 'JetBrains Mono'; font-size: 5rem; opacity: 0.03;
+            transform: rotate(-15deg); font-weight: 900; pointer-events: none;
+        }
+
+        .avatar-container { position: relative; }
+        .avatar-circle { 
+            width: 140px; height: 140px; background: var(--accent); 
+            border-radius: 30px; display: flex; align-items: center; justify-content: center;
+            font-size: 4rem; font-weight: 900; border: 2px solid rgba(255,255,255,0.1);
+            transform: rotate(-3deg); box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .driver-info h1 { margin: 0; font-size: 2.2rem; font-family: 'JetBrains Mono'; letter-spacing: -1px; }
         
-        .name-info h2 { margin: 0; font-size: 1.8rem; letter-spacing: -1px; }
-        .rank-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-top: 5px; color: white; }
+        .rank-group { display: flex; align-items: center; gap: 15px; margin-top: 15px; }
+        .rank-badge { 
+            padding: 6px 15px; background: var(--gold); 
+            color: black; border-radius: 8px; font-size: 0.75rem; font-weight: 900; 
+            text-transform: uppercase; letter-spacing: 1px;
+        }
 
-        /* Stats Section */
-        .stats-list { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
-        .stat-item { background: #0f172a; padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
-        .stat-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; font-weight: 700; margin-bottom: 5px; display: block; }
-        .stat-value { font-family: 'JetBrains Mono'; font-size: 1.3rem; color: var(--accent); }
+        /* PROGRESS BAR */
+        .xp-bar-container { width: 100%; max-width: 300px; margin-top: 20px; }
+        .xp-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; display: flex; justify-content: space-between; }
+        .xp-bg { height: 8px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+        .xp-fill { height: 100%; background: var(--accent); width: 0%; transition: width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
-        /* Barre de Progression XP */
-        .xp-progress-area { margin-top: 35px; }
-        .xp-header { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 10px; font-weight: 600; }
-        .progress-bg { height: 12px; background: #334155; border-radius: 6px; overflow: hidden; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #60a5fa); width: 0%; transition: width 1s ease; }
-        
-        .footer-info { margin-top: 30px; text-align: center; color: var(--muted); font-size: 0.8rem; font-style: italic; }
+        /* STATS CARDS */
+        .stats-grid { 
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px; 
+        }
+        .stat-card { 
+            background: rgba(30, 41, 59, 0.5); border: 1px solid var(--border); 
+            padding: 25px; border-radius: 24px; text-align: left;
+            transition: 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-5px); border-color: var(--accent); background: var(--card); }
+        .stat-icon { font-size: 1.2rem; margin-bottom: 15px; opacity: 0.8; }
+        .stat-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
+        .stat-value { font-family: 'JetBrains Mono'; font-size: 1.5rem; font-weight: 700; margin-top: 8px; }
+
+        /* INVENTORY */
+        .inventory-preview { margin-top: 40px; }
+        .section-header { 
+            display: flex; align-items: center; gap: 15px; margin-bottom: 25px;
+            font-family: 'JetBrains Mono'; font-size: 0.8rem; font-weight: 800; color: var(--muted);
+        }
+        .section-line { flex-grow: 1; height: 1px; background: var(--border); }
+
+        .truck-card { 
+            background: var(--card); padding: 25px; border-radius: 24px; 
+            border: 1px solid var(--border); display: flex; align-items: center; gap: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .truck-icon-box { 
+            width: 60px; height: 60px; background: rgba(59, 130, 246, 0.1); 
+            border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 2rem;
+        }
+
+        .btn-back { 
+            display: inline-flex; align-items: center; gap: 10px; margin-top: 50px; 
+            color: var(--muted); text-decoration: none; font-weight: 700; font-size: 0.85rem; 
+            padding: 12px 24px; border-radius: 14px; border: 1px solid var(--border); transition: 0.3s;
+        }
+        .btn-back:hover { background: var(--card); color: white; border-color: var(--accent); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
     <div class="profile-container">
-        <header>
-            <a href="index.html" class="btn-back">⬅ RETOUR DASHBOARD</a>
-        </header>
-
-        <div class="profile-card">
-            <div class="avatar-area">
-                <div class="avatar-circle">👤</div>
-                <div class="name-info">
-                    <h2 id="p-name">CHARGEMENT...</h2>
-                    <div id="p-rank" class="rank-badge">ANALYSE...</div>
-                </div>
+        <div class="profile-header">
+            <div class="avatar-container">
+                <div class="avatar-circle" id="avatar-initial">?</div>
             </div>
-
-            <div class="stats-list">
-                <div class="stat-item">
-                    <span class="stat-label">Distance Totale</span>
-                    <span id="p-dist" class="stat-value">0 KM</span>
+            <div class="driver-info">
+                <h1 id="p-name">Chargement...</h1>
+                <div class="rank-group">
+                    <div class="rank-badge" id="p-rank">Recrue</div>
+                    <span style="font-size: 0.75rem; color: var(--muted); font-weight: 600;">Service Actif // ID-8820</span>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-label">Argent Cumulé</span>
-                    <span id="p-wallet" class="stat-value">0 €</span>
+                
+                <div class="xp-bar-container">
+                    <div class="xp-label">
+                        <span>Progression de niveau</span>
+                        <span id="xp-percent">0%</span>
+                    </div>
+                    <div class="xp-bg">
+                        <div class="xp-fill" id="p-xp-fill"></div>
+                    </div>
                 </div>
-                <div class="stat-item" style="grid-column: span 2;">
-                    <span class="stat-label">Dernière Livraison</span>
-                    <span id="p-lastjob" class="stat-value" style="font-size: 1rem; color: #10b981;">---</span>
-                </div>
-            </div>
-
-            <div class="xp-progress-area">
-                <div class="xp-header">
-                    <span>Progression Niveau</span>
-                    <span id="xp-text">0 / 500 XP</span>
-                </div>
-                <div class="progress-bg">
-                    <div id="xp-bar" class="progress-fill"></div>
-                </div>
-            </div>
-
-            <div class="footer-info" id="p-status">
-                Compte chauffeur certifié par Damian VTC Logistic.
             </div>
         </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">🛤️</div>
+                <div class="stat-label">Distance Totale</div>
+                <div class="stat-value" id="p-dist" style="color: var(--accent);">0 KM</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⭐</div>
+                <div class="stat-label">Expérience</div>
+                <div class="stat-value" id="p-xp">0 XP</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💳</div>
+                <div class="stat-label">Capital Bancaire</div>
+                <div class="stat-value" id="p-wallet" style="color: var(--success);">0 €</div>
+            </div>
+        </div>
+
+        <div class="inventory-preview">
+            <div class="section-header">
+                <span>UNITÉ DE TRANSPORT ASSIGNÉE</span>
+                <div class="section-line"></div>
+            </div>
+            <div class="truck-card">
+                <div class="truck-icon-box">🚛</div>
+                <div>
+                    <div style="color: var(--muted); font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Modèle Actuel</div>
+                    <div style="font-size: 1.2rem; font-weight: 900; font-family: 'JetBrains Mono';" id="p-truck">Chargement...</div>
+                    <div style="font-size: 0.75rem; color: var(--success); font-weight: 600; margin-top: 4px;">● OPÉRATIONNEL</div>
+                </div>
+            </div>
+        </div>
+
+        <a href="index.html" class="btn-back">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 8 9 0 01-18 0z"></path></svg>
+            RETOUR AU COCKPIT
+        </a>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        const user = localStorage.getItem('vtcName');
+        const driverName = localStorage.getItem('driverName');
 
-        if (!user) window.location.href = "login.html";
+        socket.emit('get_driver_full_profile', driverName);
 
-        // Mêmes paliers d'XP que le dashboard
-        function getRank(xp) {
-            if (xp < 500) return { name: "Stagiaire", color: "#64748b", next: 500 };
-            if (xp < 2000) return { name: "Chauffeur Pro", color: "#2563eb", next: 2000 };
-            if (xp < 5000) return { name: "Expert Route", color: "#10b981", next: 5000 };
-            return { name: "Légende VTC", color: "#f59e0b", next: 10000 };
-        }
-
-        socket.on('update_leaderboard', (drivers) => {
-            const me = drivers.find(d => d.name.toLowerCase() === user.toLowerCase());
+        socket.on('receive_profile_data', (data) => {
+            document.getElementById('p-name').innerText = data.name;
+            document.getElementById('avatar-initial').innerText = data.name.charAt(0).toUpperCase();
             
-            if (me) {
-                document.getElementById('p-name').innerText = me.name.toUpperCase();
-                document.getElementById('p-dist').innerText = Math.round(me.distance) + " KM";
-                document.getElementById('p-wallet').innerText = me.wallet.toLocaleString() + " €";
-                document.getElementById('p-lastjob').innerText = me.lastJob || "Aucune mission";
+            document.getElementById('p-dist').innerText = Math.round(data.distance).toLocaleString() + " KM";
+            document.getElementById('p-xp').innerText = data.experience.toLocaleString() + " XP";
+            document.getElementById('p-wallet').innerText = Math.round(data.wallet).toLocaleString() + " €";
 
-                const xp = me.experience || 0;
-                const rank = getRank(xp);
-                
-                // Badge
-                const b = document.getElementById('p-rank');
-                b.innerText = rank.name;
-                b.style.backgroundColor = rank.color;
+            const level = Math.floor(data.experience / 1000) + 1;
+            const xpTowardsNextLevel = data.experience % 1000;
+            const progressPercent = xpTowardsNextLevel / 10;
 
-                // Barre XP
-                const progress = (xp / rank.next) * 100;
-                document.getElementById('xp-bar').style.width = Math.min(progress, 100) + "%";
-                document.getElementById('xp-text').innerText = `${Math.round(xp)} / ${rank.next} XP`;
+            document.getElementById('p-rank').innerText = "RANG " + level + " - " + getRankTitle(level);
+            document.getElementById('p-xp-fill').style.width = progressPercent + "%";
+            document.getElementById('xp-percent').innerText = Math.floor(progressPercent) + "%";
+
+            if(data.inventory && data.inventory.length > 0) {
+                const latestTruck = data.inventory[data.inventory.length - 1];
+                document.getElementById('p-truck').innerText = latestTruck.model;
+            } else {
+                document.getElementById('p-truck').innerText = "AUCUN VÉHICULE";
             }
         });
+
+        function getRankTitle(level) {
+            if(level < 5) return "RECRUE";
+            if(level < 15) return "OFFICIER DE ROUTE";
+            if(level < 30) return "COMMANDANT";
+            return "LÉGENDE VIVANTE";
+        }
     </script>
 </body>
 </html>
