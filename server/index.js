@@ -1,7 +1,7 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require("socket.io");
-const mongoose = require('mongoose'); // Importation de Mongoose
+const mongoose = require('mongoose');
 const path = require('path');
 const axios = require('axios');
 
@@ -9,169 +9,149 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Render définit dynamiquement le PORT, sinon on utilise 3000
+// Configuration dynamique (Render / Local)
 const PORT = process.env.PORT || 3000; 
-
-// --- CONFIGURATION DISCORD & MONGO ---
-// On utilise les variables d'environnement de Render pour la sécurité
-const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || "https://canary.discord.com/api/webhooks/1430732573285421066/okySLHgJnp1qO9tyMcogXMVH8fH8uefrSjkVGJyCff9DWBuZ246z_VV48W7rzZsMDhjI";
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://damienthil60_db_user:syUozi0fA1dlJfwY@cluster0.ieo8gkh.mongodb.net/?appName=Cluster0";
+const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK_URL || "https://canary.discord.com/api/webhooks/1430732573285421066/okySLHgJnp1qO9tyMcogXMVH8fH8uefrSjkVGJyCff9DWBuZ246z_VV48W7rzZsMDhjI";
 
-// --- CONNEXION MONGODB ---
+// --- 1. CONNEXION MONGODB ---
 mongoose.connect(MONGO_URI)
-    .then(() => console.log("✨ Connecté à MongoDB Atlas (Base de données Cloud)"))
-    .catch(err => console.error("❌ Erreur de connexion MongoDB:", err));
+    .then(() => console.log("✨ DATABASE : Connectée au Cloud Atlas"))
+    .catch(err => console.error("❌ DATABASE : Erreur de connexion", err));
 
-// --- MODÈLE DE DONNÉES (SCHEMA) ---
+// --- 2. MODÈLE DE DONNÉES ---
 const driverSchema = new mongoose.Schema({
     name: { type: String, unique: true, required: true },
     pass: { type: String, required: true },
     wallet: { type: Number, default: 1500 },
     experience: { type: Number, default: 0 },
     distance: { type: Number, default: 0 },
-    isValidated: { type: Boolean, default: false }, // Gère l'état Pending/Validé
-    inventory: { type: Array, default: [] },
-    meta: { type: Object, default: {} },
-    truck: { type: Object, default: {} },
-    joinedAt: { type: Date, default: Date.now }
+    isValidated: { type: Boolean, default: false },
+    truck: { type: Object, default: { brand: "Renault", model: "T", wearSum: 0 } },
+    job: { type: Object, default: {} },
+    lastUpdate: { type: Date, default: Date.now }
 });
 
 const Driver = mongoose.model('Driver', driverSchema);
 
-// --- FONCTION ALERTE DISCORD ---
-async function sendDiscordAlert(driverName, truck) {
-    if (!DISCORD_WEBHOOK_URL.startsWith('http')) return;
-    try {
-        await axios.post(DISCORD_WEBHOOK_URL, {
-            embeds: [{
-                title: "🚛 Nouvelle Candidature !",
-                color: 3932150,
-                fields: [
-                    { name: "Chauffeur", value: `**${driverName}**`, inline: true },
-                    { name: "Camion Favori", value: truck, inline: true }
-                ],
-                footer: { text: "VTC Ops Management Terminal" },
-                timestamp: new Date()
-            }]
-        });
-    } catch (err) { console.error("Discord Webhook Error:", err.message); }
-}
-
-// --- CONFIGURATION SERVEUR ---
+// --- 3. SERVEUR DE FICHIERS ---
 app.use(express.static(path.join(__dirname, '../dashboard')));
 
-// --- LOGIQUE TEMPS RÉEL (SOCKET.IO) ---
+// --- 4. LOGIQUE SOCKET.IO ---
 io.on('connection', (socket) => {
-    console.log('⚡ Client connecté : ' + socket.id);
+    console.log(`📡 Connexion établie : ${socket.id}`);
 
-    // 1. INSCRIPTION
+    // --- A. AUTHENTIFICATION ---
     socket.on('auth_register', async (regData) => {
         try {
             const newDriver = new Driver({
                 name: regData.name,
                 pass: regData.pass,
-                meta: regData.meta || {}
+                truck: { favorite: regData.meta?.favoriteTruck || "Non précisé" }
             });
             await newDriver.save();
-            
             socket.emit('register_pending');
-            // On informe l'admin qu'il y a un nouveau candidat
-            const allDrivers = await Driver.find();
-            io.emit('receive_admin_data', {
-                drivers: allDrivers.filter(d => d.isValidated),
-                pending: allDrivers.filter(d => !d.isValidated)
-            });
             
-            sendDiscordAlert(regData.name, regData.meta?.favoriteTruck || "Non précisé");
+            // Alerte Discord Webhook
+            if (DISCORD_WEBHOOK) {
+                axios.post(DISCORD_WEBHOOK, {
+                    embeds: [{
+                        title: "🚛 Nouveau Candidat !",
+                        description: `**${regData.name}** souhaite rejoindre VTC Ops.`,
+                        color: 3447003,
+                        fields: [{ name: "Camion souhaité", value: regData.meta?.favoriteTruck || "Aucun" }]
+                    }]
+                }).catch(() => {});
+            }
         } catch (err) {
-            socket.emit('auth_error', 'Ce nom est déjà pris ou une erreur est survenue.');
+            socket.emit('auth_error', 'Nom déjà pris ou erreur système.');
         }
     });
 
-    // 2. CONNEXION
     socket.on('auth_login', async ({ name, pass }) => {
         const driver = await Driver.findOne({ name, pass });
         if (driver) {
             if (driver.isValidated) {
                 socket.emit('auth_success', { name: driver.name });
             } else {
-                socket.emit('auth_error', 'Votre compte est en attente de validation admin.');
+                socket.emit('auth_error', 'Compte en attente de validation admin.');
             }
         } else {
             socket.emit('auth_error', 'Identifiants incorrects.');
         }
     });
 
-    // 3. ADMINISTRATION
+    // --- B. TÉLÉMÉTRIE & DISTANCE (Depuis scs_relay.js) ---
+    socket.on('truck_data', async (data) => {
+        // Gain de distance basé sur l'update toutes les 500ms
+        // (Vitesse / 3600 sec / 2 updates par sec)
+        const distanceStep = (data.truck.speed / 7200);
+
+        const updated = await Driver.findOneAndUpdate(
+            { name: data.driverName },
+            { 
+                $inc: { distance: distanceStep, experience: (distanceStep * 10) }, // 10 XP par KM
+                $set: { 
+                    truck: data.truck, 
+                    job: data.job, 
+                    lastUpdate: new Date() 
+                } 
+            },
+            { new: true }
+        );
+
+        if (updated) {
+            socket.emit('update_dashboard', updated);
+            // On diffuse à tout le monde pour le Classement et le Dispatcher
+            io.emit('update_leaderboard', await Driver.find({ isValidated: true }));
+        }
+    });
+
+    // --- C. STATISTIQUES RECRUTEMENT (Pour hiring.html) ---
+    socket.on('get_hiring_stats', async () => {
+        try {
+            const drivers = await Driver.find({ isValidated: true });
+            const totalKM = drivers.reduce((sum, d) => sum + (d.distance || 0), 0);
+            const totalXP = drivers.reduce((sum, d) => sum + (d.experience || 0), 0);
+            
+            const topThree = [...drivers]
+                .sort((a, b) => b.experience - a.experience)
+                .slice(0, 3)
+                .map(d => ({ name: d.name, xp: d.experience }));
+
+            socket.emit('receive_hiring_stats', {
+                totalKM,
+                totalXP,
+                activeDrivers: drivers.length,
+                topThree
+            });
+        } catch (err) { console.log("Erreur stats hiring"); }
+    });
+
+    // --- D. ADMINISTRATION & ACTIONS ---
     socket.on('get_admin_data', async () => {
-        const allDrivers = await Driver.find();
+        const all = await Driver.find();
         socket.emit('receive_admin_data', {
-            drivers: allDrivers.filter(d => d.isValidated),
-            pending: allDrivers.filter(d => !d.isValidated)
+            drivers: all.filter(d => d.isValidated),
+            pending: all.filter(d => !d.isValidated)
         });
     });
 
     socket.on('admin_validate_driver', async (name) => {
         await Driver.findOneAndUpdate({ name }, { isValidated: true });
-        const allDrivers = await Driver.find();
-        io.emit('receive_admin_data', {
-            drivers: allDrivers.filter(d => d.isValidated),
-            pending: allDrivers.filter(d => !d.isValidated)
-        });
-        console.log(`✅ ${name} a été validé.`);
+        io.emit('admin_refresh_needed');
     });
 
-    socket.on('admin_reject_driver', async (name) => {
-        await Driver.findOneAndDelete({ name, isValidated: false });
-        const allDrivers = await Driver.find();
-        io.emit('receive_admin_data', {
-            drivers: allDrivers.filter(d => d.isValidated),
-            pending: allDrivers.filter(d => !d.isValidated)
-        });
-    });
-
-    // 4. MESSAGES FLASH & TÉLÉMÉTRIE
-    socket.on('send_global_flash', (msg) => {
-        io.emit('receive_flash', msg);
-    });
-
-    socket.on('get_driver_data', async (name) => {
-        const driver = await Driver.findOne({ name });
-        if (driver) socket.emit('update_dashboard', driver);
-    });
-
-    socket.on('telemetry_update', async (data) => {
-        // Mise à jour atomique en base de données
-        const driver = await Driver.findOneAndUpdate(
-            { name: data.driverName },
-            { 
-                $inc: { distance: (data.truck.speed / 3600) }, 
-                $set: { truck: data.truck, job: data.job } 
-            },
-            { new: true }
-        );
-        if (driver) socket.emit('update_dashboard', driver);
-    });
-
-    // 5. MAINTENANCE
-    socket.on('repair_truck_full', async ({ driverName, cost }) => {
-        const driver = await Driver.findOne({ name: driverName });
-        if (driver && driver.wallet >= cost) {
-            const updated = await Driver.findOneAndUpdate(
-                { name: driverName },
-                { $inc: { wallet: -cost }, $set: { "truck.wearSum": 0 } },
-                { new: true }
-            );
-            socket.emit('repair_success', 0);
-            socket.emit('update_dashboard', updated);
-        }
+    socket.on('send_private_flash', ({ name, message, type }) => {
+        io.emit('receive_flash', { target: name, message, type });
     });
 
     socket.on('disconnect', () => {
-        console.log('❌ Client déconnecté');
+        console.log(`🔌 Déconnexion : ${socket.id}`);
     });
 });
 
+// Lancement du serveur
 server.listen(PORT, () => {
-    console.log(`🚀 Serveur VTC Ops Cloud lancé sur le port ${PORT}`);
+    console.log(`🚀 [VTC OPS] Serveur actif sur le port ${PORT}`);
 });

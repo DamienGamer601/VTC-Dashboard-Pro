@@ -2,69 +2,84 @@ const io = require('socket.io-client');
 const axios = require('axios');
 
 // --- CONFIGURATION ---
-// Remplace par l'URL de ton site Render (ex: https://mon-vtc.onrender.com)
 const SERVER_URL = "https://vtc-dashboard-pro.onrender.com"; 
-
-// URL locale du plugin telemetry (ne pas changer sauf si port différent)
 const TELEMETRY_URL = "http://localhost:25555/api/ets2/telemetry";
 
-const socket = io(SERVER_URL);
+// On force un nom par défaut si l'env n'est pas définie pour éviter le "Chauffeur_Anonyme"
+const DRIVER_NAME = process.env.DRIVER_NAME || "CHAUFFEUR_ALPHA";
 
-// Récupération du nom du chauffeur configuré sur ton ordi
-const DRIVER_NAME = process.env.DRIVER_NAME || "Chauffeur_Anonyme";
+const socket = io(SERVER_URL, {
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 2000
+});
 
-console.log(`🚛 Relais VTC démarré pour : ${DRIVER_NAME}`);
-console.log(`🔗 Connexion au serveur : ${SERVER_URL}`);
+console.log(`\n🚀 [VTC OPS] RELAY INITIALISÉ`);
+console.log(`👤 AGENT : ${DRIVER_NAME}`);
+console.log(`🔗 SERVEUR : ${SERVER_URL}\n`);
 
+// Statut de connexion au serveur Cloud
 socket.on('connect', () => {
-    console.log("✅ Connecté au serveur Render !");
+    console.log("✅ [CLOUD] Connexion établie. Flux de données actif.");
 });
 
 socket.on('disconnect', () => {
-    console.log("❌ Déconnecté du serveur.");
+    console.log("❌ [CLOUD] Déconnecté. Tentative de reconnexion...");
 });
 
-// Écoute des ordres de réparation à distance de l'admin
-socket.on('remote_repair', (data) => {
-    if (data.targetDriver.toLowerCase() === DRIVER_NAME.toLowerCase()) {
-        console.log("🛠️ ORDRE ADMIN : Réparation du camion en cours...");
-        // Ici, on pourrait ajouter une logique pour réinitialiser les dégâts 
-        // si le plugin telemetry le permettait en écriture.
-    }
+// Écoute des flashs ou alertes envoyés par le Dispatcher
+socket.on('receive_flash', (data) => {
+    console.log(`\n🔔 [ALERTE DISPATCH] : ${data.message}\n`);
+    // Ici, on pourrait déclencher un son système pour prévenir le chauffeur
 });
 
-// Boucle de lecture des données (toutes les 500ms pour ne pas ramer)
+// Boucle principale de capture
 setInterval(async () => {
     try {
-        const response = await axios.get(TELEMETRY_URL);
-        const data = response.data;
+        const response = await axios.get(TELEMETRY_URL, { timeout: 400 });
+        const d = response.data;
 
-        // On prépare l'objet à envoyer avec le nom du chauffeur
+        // Calcul intelligent de l'usure (Moyenne pondérée : moteur/châssis/roues)
+        const wearLevel = (d.truck.wearEngine * 0.4 + d.truck.wearChassis * 0.4 + d.truck.wearWheels * 0.2) * 100;
+
         const payload = {
             driverName: DRIVER_NAME,
+            timestamp: new Date().toISOString(),
             truck: {
-                speed: Math.round(data.truck.speed > 0 ? data.truck.speed : 0),
-                odometer: data.truck.odometer,
-                fuel: data.truck.fuel,
-                fuelCapacity: data.truck.fuelCapacity,
-                wearSum: Math.round((data.truck.wearEngine + data.truck.wearWheels + data.truck.wearChassis) / 3 * 100),
-                gear: data.truck.displayedGear
+                brand: d.truck.brand,
+                model: d.truck.model,
+                speed: Math.max(0, Math.round(d.truck.speed * 3.6)), // Conversion m/s en km/h si nécessaire
+                odometer: Math.round(d.truck.odometer),
+                fuel: Math.round(d.truck.fuel),
+                fuelCapacity: d.truck.fuelCapacity,
+                fuelPct: Math.round((d.truck.fuel / d.truck.fuelCapacity) * 100),
+                wearSum: wearLevel.toFixed(1),
+                gear: d.truck.displayedGear,
+                engineOn: d.truck.engineOn,
+                cruiseControl: d.truck.cruiseControlOn
             },
             job: {
-                cargoLoaded: data.job.cargoLoaded,
-                cargo: data.job.cargo,
-                destinationCity: data.job.destinationCity
+                active: d.job.cargoLoaded,
+                cargo: d.job.cargo || "Aucune cargaison",
+                destinationCity: d.job.destinationCity || "En attente",
+                remainingDistance: Math.round(d.job.remainingDistanceKm || 0),
+                plannedDistance: Math.round(d.job.plannedDistanceKm || 0),
+                income: d.job.income
+            },
+            navigation: {
+                nextRest: d.navigation.nextRestStopInMinutes || 0,
+                speedLimit: d.navigation.speedLimit || 0
             }
         };
 
-        // Envoi au serveur
+        // Envoi des données au serveur
         socket.emit('truck_data', payload);
 
     } catch (error) {
-        if (error.code === 'ECONNREFUSED') {
-            console.log("⏳ En attente de SCS Telemetry (lance le jeu !)");
+        if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+            process.stdout.write("⏳ [SCS] En attente du simulateur... \r");
         } else {
-            console.error("⚠️ Erreur relais :", error.message);
+            console.error("\n⚠️ [ERREUR RELAY] :", error.message);
         }
     }
-}, 500);
+}, 500); // 500ms est le "sweet spot" entre réactivité et performance
