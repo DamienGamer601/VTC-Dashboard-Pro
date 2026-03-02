@@ -21,7 +21,7 @@ const ADMIN_PASSWORD = "admin60_server60";
 const DISCORD_WEBHOOK = "https://canary.discord.com/api/webhooks/1430732573285421066/okySLHgJnp1qO9tyMcogXMVH8fH8uefrSjkVGJyCff9DWBuZ246z_VV48W7rzZsMDhjI";
 
 // --- LEVIER DE MAINTENANCE GLOBAL ---
-global.MAINTENANCE_MODE = false; 
+global.MAINTENANCE_MODE = true; 
 
 // --- CONNEXION MONGODB ---
 mongoose.connect(MONGO_URI)
