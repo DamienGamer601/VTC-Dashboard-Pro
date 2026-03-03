@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maintenance Technique - VTC Ops</title>
-    <link rel="icon" type="image/png" href="logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --bg: #020617; --card: #0f172a; --accent: #f59e0b; 
+            --bg: #020617; --accent: #f59e0b; 
             --text: #f8fafc; --muted: #64748b; --border: rgba(245, 158, 11, 0.2);
         }
 
@@ -23,7 +22,6 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: conic-gradient(from 0deg at 50% 50%, transparent, rgba(245, 158, 11, 0.05), transparent);
             animation: rotateLight 4s linear infinite;
-            z-index: 1;
         }
 
         @keyframes rotateLight { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -34,10 +32,7 @@
             border-radius: 40px; backdrop-filter: blur(20px);
             max-width: 550px; width: 90%;
             box-shadow: 0 0 50px rgba(245, 158, 11, 0.1);
-            animation: emerge 0.8s cubic-bezier(0.22, 1, 0.36, 1);
         }
-
-        @keyframes emerge { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         .status-badge {
             display: inline-flex; align-items: center; gap: 10px;
@@ -47,24 +42,22 @@
             background: rgba(245, 158, 11, 0.05); margin-bottom: 25px;
         }
 
-        .status-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); animation: blink 1s infinite; }
-
         h1 { font-family: 'JetBrains Mono'; font-size: 2.2rem; margin: 0; color: white; font-weight: 900; }
 
-        .tech-log {
-            background: rgba(0, 0, 0, 0.4); border-radius: 10px; padding: 15px; margin: 25px 0;
-            font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; text-align: left;
-            color: #10b981; height: 50px; overflow: hidden; border: 1px solid rgba(16, 185, 129, 0.1);
-        }
-
-        .countdown-box { margin-top: 20px; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .countdown-box { margin-top: 30px; padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        
+        /* Style du Timer */
         .time-display { 
-            font-family: 'JetBrains Mono'; font-size: 2.5rem; color: var(--accent); 
-            font-weight: 900; letter-spacing: 2px; text-shadow: 0 0 20px rgba(245, 158, 11, 0.4); 
+            font-family: 'JetBrains Mono'; 
+            font-size: 2.2rem; 
+            color: var(--accent); 
+            font-weight: 900; 
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
         }
-        .time-label { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-top: 10px; }
 
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .time-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-top: 10px; }
+
         .footer { position: absolute; bottom: 30px; width: 100%; text-align: center; color: #334155; font-family: 'JetBrains Mono'; font-size: 0.6rem; letter-spacing: 4px; }
     </style>
 </head>
@@ -73,79 +66,54 @@
     <div class="ambient-light"></div>
 
     <div class="container">
-        <div class="status-badge">
-            <div class="status-dot"></div>
-            Maintenance Longue Durée
-        </div>
-
-        <h1>SYSTEM <span style="color: var(--accent)">OFFLINE</span></h1>
+        <div class="status-badge">MAINTENANCE EN COURS</div>
+        <h1>VTC-OPS <span style="color: var(--accent)">OFFLINE</span></h1>
         
-        <div class="tech-log" id="log-box">
-            <div class="log-line">> Initialisation de la révision hebdomadaire...</div>
-        </div>
-
         <div class="countdown-box">
-            <div class="time-display" id="timer">--j --h --m</div>
-            <div class="time-label">Réouverture estimée des serveurs</div>
+            <div class="time-display" id="timer">SYNCHRONISATION...</div>
+            <div class="time-label">Réouverture estimée des services</div>
         </div>
     </div>
 
-    <div class="footer">DÉPARTEMENT TECHNIQUE // RÉVISION GÉNÉRALE 01-A</div>
+    <div class="footer">DÉPARTEMENT TECHNIQUE VTC-OPS</div>
 
     <script>
-        // --- 1. LOGS TERMINAL ---
-        const logs = [
-            "> Vérification de l'intégrité des données...",
-            "> Optimisation du moteur de rendu VTC...",
-            "> Mise à jour des protocoles de sécurité...",
-            "> Nettoyage des clusters MongoDB...",
-            "> Recalibrage des capteurs télémétriques...",
-            "> Compilation du nouveau noyau système..."
-        ];
-        let logIndex = 0;
-        setInterval(() => {
-            const box = document.getElementById('log-box');
-            const line = document.createElement('div');
-            line.style.marginBottom = "4px";
-            line.innerText = logs[logIndex % logs.length];
-            box.prepend(line);
-            logIndex++;
-        }, 4000);
-
-        // --- 2. TIMER SYNCHRONISÉ (FORMAT LONG) ---
-        function updateMaintenance() {
+        function updateTimer() {
+            // On demande l'heure au serveur
             fetch('/api/maintenance-status')
-                .then(res => res.json())
+                .then(response => response.json())
                 .then(data => {
-                    if (!data.enabled) {
-                        window.location.href = '/';
-                        return;
-                    }
-
-                    if (data.endTime) {
+                    if (data.enabled && data.endTime) {
                         const now = Date.now();
                         const diff = data.endTime - now;
 
                         if (diff <= 0) {
-                            document.getElementById('timer').innerText = "FINALISATION...";
-                            document.getElementById('timer').style.color = "#10b981"; // Vert
-                        } else {
-                            const jours = Math.floor(diff / (1000 * 60 * 60 * 24));
-                            const heures = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                            const secondes = Math.floor((diff % (1000 * 60)) / 1000);
-
-                            // Affichage : 07j 12h 45m
-                            document.getElementById('timer').innerText = 
-                                `${jours}j ${heures.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m ${secondes.toString().padStart(2, '0')}s`;
+                            document.getElementById('timer').innerText = "OUVERTURE IMMINENTE";
+                            return;
                         }
+
+                        // Calcul précis
+                        const j = Math.floor(diff / (1000 * 60 * 60 * 24));
+                        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+                        // Affichage propre
+                        document.getElementById('timer').innerText = 
+                            `${j}j ${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s`;
+                    } else if (!data.enabled) {
+                        // Si l'admin coupe la maintenance, on recharge la page
+                        window.location.href = "/";
                     }
                 })
-                .catch(() => console.log("Liaison serveur interrompue..."));
+                .catch(err => {
+                    document.getElementById('timer').innerText = "CONNEXION PERDUE";
+                });
         }
 
-        setInterval(updateMaintenance, 1000);
-        updateMaintenance();
+        // Met à jour toutes les secondes
+        setInterval(updateTimer, 1000);
+        updateTimer(); // Lancement immédiat au chargement
     </script>
 </body>
 </html>
