@@ -16,12 +16,12 @@ const io = new Server(server, {
 
 // --- PARAMÈTRES ET SÉCURITÉ ---
 const PORT = process.env.PORT || 3000; 
-const MONGO_URI = "mongodb+srv://damienthil60_db_user:syUozi0fA1dlJfwY@cluster0.ieo8gkh.mongodb.net/?appName=Cluster0";
+const MONGO_URI = "mongodb+srv://damienthil60_db_user:WlVOP2DLaNYKwUJY@cluster0.ieo8gkh.mongodb.net/?appName=Cluster0";
 const ADMIN_PASSWORD = "admin60_server60"; 
-const DISCORD_WEBHOOK = "https://canary.discord.com/api/webhooks/1430732573285421066/okySLHgJnp1qO9tyMcogXMVH8fH8uefrSjkVGJyCff9DWBuZ246z_VV48W7rzZsMDhjI";
+const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1430732573285421066/okySLHgJnp1qO9tyMcogXMVH8fH8uefrSjkVGJyCff9DWBuZ246z_VV48W7rzZsMDhjI";
 
 // --- VARIABLES GLOBALES ---
-global.MAINTENANCE_MODE = false;
+global.MAINTENANCE_MODE = true;
 global.MAINTENANCE_END = null;
 
 // --- CONNEXION MONGODB ---
