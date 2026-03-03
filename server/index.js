@@ -22,7 +22,7 @@ const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1430732573285421066/ok
 
 // --- VARIABLES GLOBALES ---
 global.MAINTENANCE_MODE = true;
-global.MAINTENANCE_END = null;
+global.MAINTENANCE_END = new Date("2026-03-10T12:00:00").getTime();
 
 // --- CONNEXION MONGODB ---
 mongoose.connect(MONGO_URI)
