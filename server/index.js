@@ -22,7 +22,7 @@ const DISCORD_WEBHOOK = "https://canary.discord.com/api/webhooks/143073257328542
 const ADMIN_IPS = ['::1', '127.0.0.1']; // Whitelist pour test local
 
 // --- LEVIER DE MAINTENANCE GLOBAL ---
-global.MAINTENANCE_MODE = false; 
+global.MAINTENANCE_MODE = true; 
 global.MAINTENANCE_END = null;
 
 // --- CONNEXION MONGODB ---
