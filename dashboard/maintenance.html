@@ -19,7 +19,7 @@
             background-image: radial-gradient(circle at center, #1e1b4b 0%, #020617 100%);
         }
 
-        /* Gyrophare Ambre Circulaire */
+        /* Gyrophare Ambre */
         .ambient-light {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: conic-gradient(from 0deg at 50% 50%, transparent, rgba(245, 158, 11, 0.05), transparent);
@@ -33,7 +33,7 @@
         }
 
         .container { 
-            text-align: center; padding: 60px 40px; z-index: 10; 
+            text-align: center; padding: 50px 40px; z-index: 10; 
             background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border);
             border-radius: 40px; backdrop-filter: blur(20px);
             max-width: 550px; width: 90%;
@@ -46,55 +46,35 @@
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        .warning-icon { 
-            font-size: 4rem; margin-bottom: 20px; display: block; 
-            filter: drop-shadow(0 0 20px var(--accent));
-            animation: bounce 2s infinite ease-in-out;
-        }
-        
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
         .status-badge {
             display: inline-flex; align-items: center; gap: 10px;
             padding: 10px 20px; border: 1px solid rgba(245, 158, 11, 0.3);
             border-radius: 100px; color: var(--accent); font-family: 'JetBrains Mono';
             font-size: 0.7rem; text-transform: uppercase; letter-spacing: 3px;
-            background: rgba(245, 158, 11, 0.05); margin-bottom: 30px;
+            background: rgba(245, 158, 11, 0.05); margin-bottom: 25px;
             font-weight: 800;
         }
 
         .status-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); animation: blink 1s infinite; }
 
-        h1 { 
-            font-family: 'JetBrains Mono'; font-size: 2.5rem; letter-spacing: -1px; 
-            margin: 0; color: white; font-weight: 900; line-height: 1;
+        h1 { font-family: 'JetBrains Mono'; font-size: 2.2rem; margin: 0; color: white; font-weight: 900; }
+
+        /* Tech Log Box */
+        .tech-log {
+            background: rgba(0, 0, 0, 0.4); border-radius: 10px; padding: 15px; margin: 25px 0;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; text-align: left;
+            color: #10b981; height: 50px; overflow: hidden; border: 1px solid rgba(16, 185, 129, 0.1);
         }
+        .log-line { margin-bottom: 4px; opacity: 0.8; }
 
-        p { color: var(--muted); font-size: 0.95rem; line-height: 1.8; margin: 25px 0; font-weight: 500; }
+        /* Timer Section */
+        .countdown-box { margin-top: 20px; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .time-display { font-family: 'JetBrains Mono'; font-size: 2.8rem; color: var(--accent); font-weight: 900; letter-spacing: 5px; text-shadow: 0 0 20px rgba(245, 158, 11, 0.4); }
+        .time-label { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
 
-        /* Loader Industriel */
-        .maintenance-loader {
-            height: 40px; display: flex; align-items: center; justify-content: center; gap: 6px; margin: 40px 0;
-        }
-        .block { width: 6px; height: 100%; background: var(--accent); border-radius: 2px; animation: scaleUp 1s infinite ease-in-out; }
-        .block:nth-child(2) { animation-delay: 0.1s; }
-        .block:nth-child(3) { animation-delay: 0.2s; }
-        .block:nth-child(4) { animation-delay: 0.3s; }
-
-        @keyframes scaleUp { 0%, 100% { transform: scaleY(0.4); opacity: 0.3; } 50% { transform: scaleY(1); opacity: 1; } }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-        .return-info {
-            font-family: 'JetBrains Mono'; font-size: 0.75rem; color: var(--muted);
-            border-top: 1px solid rgba(255,255,255,0.05); padding-top: 30px;
-            text-transform: uppercase; letter-spacing: 2px;
-        }
-
-        .footer { 
-            position: absolute; bottom: 40px; width: 100%; text-align: center;
-            color: #334155; font-family: 'JetBrains Mono'; font-size: 0.65rem; letter-spacing: 4px;
-            font-weight: 700;
-        }
+        .footer { position: absolute; bottom: 30px; width: 100%; text-align: center; color: #334155; font-family: 'JetBrains Mono'; font-size: 0.6rem; letter-spacing: 4px; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -102,49 +82,78 @@
     <div class="ambient-light"></div>
 
     <div class="container">
-        <span class="warning-icon">🚧</span>
-        
         <div class="status-badge">
             <div class="status-dot"></div>
-            Secteur en maintenance
+            Maintenance de Secteur
         </div>
 
         <h1>SYSTEM <span style="color: var(--accent)">OFFLINE</span></h1>
         
-        <p>
-            Nos ingénieurs procèdent actuellement à la mise à jour des serveurs de navigation. 
-            Le dispatching est temporairement suspendu pour garantir la précision de vos données télémétriques.
-        </p>
-        
-        <div class="maintenance-loader">
-            <div class="block"></div>
-            <div class="block"></div>
-            <div class="block"></div>
-            <div class="block"></div>
+        <div class="tech-log" id="log-box">
+            <div class="log-line">> Initialisation du protocole de sécurité...</div>
         </div>
-        
-        <div class="return-info">
-            Statut : <span style="color: white">Calibrage en cours</span><br>
-            Estimation : <span style="color: var(--accent)">Imminente</span>
+
+        <div class="countdown-box">
+            <div class="time-display" id="timer">--:--</div>
+            <div class="time-label">Temps estimé avant rétablissement</div>
         </div>
     </div>
 
-    <div class="footer">DÉPARTEMENT TECHNIQUE // VTC-OPS-GLOBAL</div>
+    <div class="footer">UNITÉ TECHNIQUE VTC-OPS // GLOBAL STATUS: DOWN</div>
 
     <script>
-        // --- SYSTÈME DE RÉVEIL AUTOMATIQUE ---
-        // Ce script vérifie si le serveur a levé la maintenance
+        // --- 1. LOGIQUE DU TERMINAL DE LOGS ---
+        const logs = [
+            "> Vérification des bases de données SQL...",
+            "> Nettoyage des caches télémétriques...",
+            "> Re-calibration des capteurs GPS...",
+            "> Synchronisation des horloges serveurs...",
+            "> Mise à jour du noyau VTC-OS v4.2.0...",
+            "> Analyse des intégrités de flotte...",
+            "> Déploiement des nouveaux shaders de route..."
+        ];
+        let logIndex = 0;
         setInterval(() => {
-            fetch('/')
-                .then(response => {
-                    // Si l'URL de réponse n'est plus maintenance.html, on recharge !
-                    if (!response.url.includes('maintenance.html')) {
+            const box = document.getElementById('log-box');
+            const line = document.createElement('div');
+            line.className = 'log-line';
+            line.innerText = logs[logIndex % logs.length];
+            box.prepend(line);
+            logIndex++;
+        }, 3000);
+
+        // --- 2. LOGIQUE DU TIMER SYNCHRONISÉ ---
+        function updateMaintenance() {
+            fetch('/api/maintenance-status')
+                .then(res => res.json())
+                .then(data => {
+                    // Si la maintenance est désactivée sur le serveur, on redirige vers l'accueil
+                    if (!data.enabled) {
                         window.location.href = '/';
+                        return;
+                    }
+
+                    // Calcul du temps restant
+                    if (data.endTime) {
+                        const diff = data.endTime - Date.now();
+                        if (diff <= 0) {
+                            document.getElementById('timer').innerText = "00:00";
+                            document.getElementById('timer').style.color = "#ef4444"; // Rouge quand expiré
+                        } else {
+                            const min = Math.floor((diff / 1000 / 60) << 0);
+                            const sec = Math.floor((diff / 1000) % 60);
+                            document.getElementById('timer').innerText = 
+                                `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+                            document.getElementById('timer').style.color = "var(--accent)";
+                        }
                     }
                 })
-                .catch(err => console.log("Serveur toujours injoignable..."));
-        }, 10000); // Vérification toutes les 10 secondes
-    </script>
+                .catch(() => console.log("Liaison serveur perdue..."));
+        }
 
+        // Mise à jour toutes les secondes
+        setInterval(updateMaintenance, 1000);
+        updateMaintenance(); // Premier appel immédiat
+    </script>
 </body>
 </html>
